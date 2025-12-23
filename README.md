@@ -1,116 +1,213 @@
 # FB Content Blocker
 
-Chrome Extension to filter Facebook content by keywords. Block posts and comments containing unwanted words.
+Chrome Extension chặn nội dung Facebook theo từ khóa. Tự động ẩn bài viết quảng cáo, spam và nội dung không mong muốn.
 
-## Features
+## Tính năng chính
 
-### Core Features
-- **Word Boundary Matching** - "book" won't block "facebook" (uses regex `\b`)
-- **Bulk Add Keywords** - Paste multiple keywords (one per line)
-- **Import/Export JSON** - Backup and restore keyword lists
-- **Statistics** - Track blocked posts today/total
-- **Categories** - Organize keywords by type (Spam, Ads, Politics, etc.)
-- **Search Keywords** - Quick search in large keyword lists
+- **Tự động chặn quảng cáo** - Block "Được tài trợ", "Sponsored" mà không cần thêm keyword
+- **Chặn theo từ khóa** - Thêm từ khóa tùy chỉnh để block
+- **Hỗ trợ tiếng Việt** - Nhận diện từ có/không dấu ("Được tài trợ" = "Duoc tai tro")
+- **Whitelist** - Danh sách ngoại lệ không bị chặn
+- **Import/Export** - Backup và restore danh sách từ khóa
+- **Thống kê** - Theo dõi số bài đã chặn
 
-### Advanced Features
-- **Comment Blocking** - Block comments containing keywords (not just posts)
-- **Regex Support** - Use regex patterns for advanced matching
-- **Whitelist** - Exception list (won't block even if matches)
-- **Case Sensitivity** - Optional case-sensitive matching
-- **Options Page** - Full settings page (not just popup)
+---
 
-### Polish
-- **Dark Mode** - Follows system theme preference
-- **Performance** - Debounced observer (300ms) + text caching
+## Cài đặt
 
-## Installation
+1. Download hoặc clone repository này
+2. Mở `chrome://extensions/` trong Chrome
+3. Bật **Developer mode** (góc phải trên)
+4. Click **Load unpacked** → chọn folder extension
 
-1. Clone or download this repository
-2. Open `chrome://extensions/` in Chrome
-3. Enable "Developer mode" (top right)
-4. Click "Load unpacked" and select the extension folder
+---
 
-## Usage
+## Hướng dẫn sử dụng
 
-1. Click the extension icon to open popup
-2. Add keywords to block (single or bulk)
-3. Select category for organization
-4. Toggle extension on/off as needed
+### 1. Chặn quảng cáo tự động
+
+Extension tự động chặn các bài có:
+- "Được tài trợ"
+- "Sponsored"
+- "Đề xuất cho bạn"
+- "Suggested for you"
+
+**Không cần làm gì** - chỉ cần cài extension và bật lên.
+
+### 2. Thêm từ khóa chặn
+
+**Cách 1: Thêm từng từ**
+1. Click icon extension
+2. Gõ từ khóa (ví dụ: "bitcoin")
+3. Chọn category (nếu muốn)
+4. Click **Thêm**
+
+**Cách 2: Thêm nhiều từ cùng lúc**
+1. Click **Thêm nhiều từ khóa**
+2. Paste danh sách (mỗi dòng 1 từ):
+   ```
+   bitcoin
+   crypto
+   tiền ảo
+   đầu tư
+   ```
+3. Click **Thêm tất cả**
+
+### 3. Ví dụ từ khóa hữu ích
+
+**Chặn quảng cáo/spam:**
+```
+giảm giá
+khuyến mãi
+sale
+freeship
+mua ngay
+đặt hàng
+link bio
+shopee
+lazada
+```
+
+**Chặn nội dung chính trị:**
+```
+bầu cử
+chính trị
+đảng
+```
+
+**Chặn clickbait:**
+```
+không thể tin
+gây sốc
+bất ngờ
+ai cũng phải xem
+```
+
+**Chặn bài về crypto:**
+```
+bitcoin
+ethereum
+crypto
+tiền ảo
+NFT
+airdrop
+```
+
+### 4. Whitelist (Ngoại lệ)
+
+Nếu từ khóa chặn nhầm bài bạn muốn xem:
+
+1. Mở **Options** (chuột phải icon → Options)
+2. Kéo xuống phần **Whitelist**
+3. Thêm từ khóa ngoại lệ
+
+**Ví dụ:** Bạn chặn "sale" nhưng muốn xem bài của shop yêu thích:
+- Whitelist: "Thời trang ABC"
+
+### 5. Import/Export
+
+**Export (Backup):**
+1. Mở Options
+2. Click **Export JSON**
+3. Lưu file backup
+
+**Import (Restore):**
+1. Mở Options
+2. Click **Import JSON**
+3. Chọn file backup
+
+**Chia sẻ danh sách:**
+- Export file JSON
+- Gửi cho bạn bè
+- Họ Import vào extension của họ
+
+### 6. Xem bài đã ẩn
+
+Khi extension ẩn bài, bạn thấy placeholder:
+```
+[Nội dung đã bị ẩn bởi FB Content Blocker] [Hiện]
+```
+
+Click **Hiện** để xem lại bài đó.
+
+---
+
+## Cài đặt nâng cao
 
 ### Options Page
-Right-click extension icon → "Options" for advanced settings:
-- Manage whitelist
-- Enable/disable comment blocking
-- Add regex patterns
-- Import/export full backup
+Chuột phải icon extension → **Options**
 
-## File Structure
+| Cài đặt | Mô tả |
+|---------|-------|
+| Bật extension | Tắt/bật toàn bộ chức năng |
+| Chặn bình luận | Ẩn cả comments chứa từ khóa |
+| Phân biệt hoa/thường | "SPAM" khác "spam" |
+| Hiển thị placeholder | Tắt = xóa hoàn toàn bài (không thể xem lại) |
 
+### Regex Pattern
+Cho người dùng nâng cao - dùng regex để match phức tạp hơn:
+
+1. Tick **Regex** khi thêm từ khóa
+2. Nhập pattern (ví dụ: `\d{10,11}` để chặn số điện thoại)
+
+**Ví dụ regex hữu ích:**
 ```
-fb-content-blocker/
-├── manifest.json          # Extension config (v3)
-├── content.js             # Main content script (filtering logic)
-├── content.css            # Placeholder styles
-├── popup.html/js/css      # Extension popup UI
-├── options.html/js/css    # Options page UI
-├── src/
-│   └── utils/
-│       └── regex-validator.js  # ReDoS protection
-├── tests/
-│   └── matcher.test.js    # 31 unit tests
-└── icons/                 # Extension icons
-```
-
-## Technical Details
-
-### Storage
-- `chrome.storage.local` - Keywords, whitelist, stats (5MB limit)
-- `chrome.storage.sync` - Settings (synced across devices, 100KB limit)
-
-### Matching Algorithm
-- Plain keywords: Combined into single regex with word boundaries
-- Regex keywords: Separate patterns, validated for ReDoS safety
-- Whitelist: Checked first, prevents blocking if matched
-
-### Facebook Selectors (Dec 2024)
-```javascript
-// Posts
-'[data-pagelet^="FeedUnit"]'
-'[role="article"]'
-'div[class*="x1yztbdb"][class*="x1n2onr6"]'
-
-// Comments
-'[aria-label*="Comment"]'
-'[data-testid*="comment"]'
-'div[dir="auto"][class*="x1lliihq"]'
+\d{10,11}          # Số điện thoại 10-11 số
+https?://\S+       # Tất cả link
+#\w+               # Tất cả hashtag
+@\w+               # Tất cả mention
 ```
 
-### Security
-- XSS prevention: `textContent` and `createElement` (no innerHTML)
-- ReDoS protection: Pattern validation + runtime timeout
-- CSP: `script-src 'self'; object-src 'self'`
-- Input limits: 5000 keywords, 500 chars/keyword, 10MB import
+---
 
-## Debug Mode
+## FAQ
 
-Enable debug logging in `content.js`:
-```javascript
-const DEBUG = true;  // Line 9
-```
+**Q: Extension có chặn được quảng cáo không?**
+A: Có, tự động chặn bài "Được tài trợ" mà không cần thêm keyword.
 
-Then check browser console (F12) for `[FB Blocker]` logs.
+**Q: Sao bài quảng cáo vẫn hiện?**
+A:
+1. Reload extension: `chrome://extensions` → click icon reload
+2. Refresh Facebook: Cmd+Shift+R (Mac) hoặc Ctrl+Shift+R (Windows)
+3. Bật DEBUG mode và gửi log cho dev
 
-## Development
+**Q: Extension có an toàn không?**
+A:
+- Không thu thập dữ liệu
+- Không gửi thông tin ra ngoài
+- Chỉ chạy trên facebook.com
+- Open source, có thể kiểm tra code
 
-### Run Tests
-```bash
-node tests/matcher.test.js
-```
+**Q: Làm sao báo lỗi?**
+A: Mở issue trên GitHub với:
+1. Screenshot bài không bị chặn
+2. Console log (F12 → Console → filter "FB Blocker")
 
-### Version History
-- **v2.0.0** - Full feature release (categories, whitelist, regex, dark mode)
-- **v1.0.0** - Initial release (basic keyword blocking)
+---
+
+## Debug
+
+Nếu extension không hoạt động:
+
+1. Mở file `content.js`
+2. Đổi `const DEBUG = false;` thành `const DEBUG = true;`
+3. Reload extension
+4. Mở Facebook, F12 → Console
+5. Filter: `FB Blocker`
+6. Copy log và báo cáo
+
+---
+
+## Phiên bản
+
+| Version | Thay đổi |
+|---------|----------|
+| 2.1.0 | Tự động chặn quảng cáo, fuzzy matching tiếng Việt |
+| 2.0.0 | i18n, whitelist, regex, comment blocking |
+| 1.0.0 | Phiên bản đầu tiên |
+
+---
 
 ## License
 
-MIT
+MIT - Tự do sử dụng và chỉnh sửa.
