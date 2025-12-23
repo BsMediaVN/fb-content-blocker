@@ -1,23 +1,40 @@
 # FB Content Blocker - Codebase Summary
 
-**Version:** 1.0.0 | **Phase:** 1 - Core Implementation | **Last Updated:** 2025-12-23
+**Version:** 2.1.0 | **Last Updated:** 2025-12-23
 
 ## Project Overview
 
-FB Content Blocker is a Chrome Extension (Manifest V3) that filters Facebook feed content based on user-defined keywords. The extension uses word boundary regex matching to accurately identify and hide posts containing blocked keywords, with features for bulk keyword management, import/export, and blocking statistics.
+FB Content Blocker is a Chrome Extension (Manifest V3) that filters Facebook feed content based on user-defined keywords and built-in ads patterns. Features Vietnamese support, fuzzy matching, and automatic sponsored content blocking.
 
 ### Key Statistics
-- **Total Files:** 20 (code + configuration)
-- **Main Components:** 5 (content.js, popup.js, matcher, stats, migration)
-- **Test Coverage:** 23 unit tests for keyword matching
-- **Storage Model:** Hybrid (chrome.storage.sync for settings, chrome.storage.local for large data)
-- **Performance:** Debounced MutationObserver (300ms) + compiled regex for O(n) text scanning
+- **Total Files:** 25+ (code + configuration + locales)
+- **Main Components:** content.js, popup.js, options.js, matcher, stats, migration
+- **Test Coverage:** 31 unit tests for keyword matching
+- **i18n:** Vietnamese (vi), English (en)
+- **Performance:** Debounced MutationObserver (150ms) + compiled regex
+
+---
+
+## Recent Changes (Dec 2025)
+
+### v2.1.0 - Built-in Ads Blocking
+- **BUILT_IN_ADS_PATTERNS**: Auto-block "Được tài trợ", "Sponsored", etc. without user keywords
+- **normalizeText()**: Fuzzy matching removes Vietnamese diacritics
+- **Vietnamese word boundary**: Uses lookahead/lookbehind instead of `\b` (which doesn't work with Unicode)
+- **findPostContainer()**: Traverses DOM to find actual post container for hiding
+
+### v2.0.0 - i18n & Advanced Features
+- **i18n support**: `_locales/vi/messages.json`, `_locales/en/messages.json`
+- **Options page**: Full settings UI (`options.html`, `options.js`)
+- **Whitelist**: Keywords that won't be blocked even if matched
+- **Regex support**: Optional regex patterns for advanced users
+- **Case sensitivity**: Toggle case-sensitive matching
+- **Comment blocking**: Filter comments containing keywords
+- **Show placeholder option**: Toggle to completely remove blocked content
 
 ---
 
 ## Architecture Overview
-
-### Component Hierarchy
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -25,224 +42,142 @@ FB Content Blocker is a Chrome Extension (Manifest V3) that filters Facebook fee
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
 │  POPUP UI (popup.html/js/css)                            │
-│  ├─ Keyword Management (add, delete, list)              │
-│  ├─ Bulk Operations (import 100+ keywords)              │
-│  ├─ Statistics Display (today/total blocks)             │
-│  └─ Enable/Disable Toggle                               │
+│  ├─ Quick keyword add                                   │
+│  ├─ Bulk add (multi-line)                               │
+│  ├─ Statistics display                                  │
+│  └─ Enable/Disable toggle                               │
+│                                                          │
+│  OPTIONS PAGE (options.html/js/css)                      │
+│  ├─ Full keyword management (categories, regex, etc.)   │
+│  ├─ Whitelist management                                │
+│  ├─ Settings toggles (comments, case, placeholder)      │
+│  └─ Import/Export JSON                                  │
 │                                                          │
 │  CONTENT SCRIPT (content.js)                             │
-│  ├─ KeywordMatcher (regex compilation)                  │
-│  ├─ Stats (increment/track blocks)                      │
-│  ├─ Migration (v1→v2 data upgrade)                      │
-│  ├─ MutationObserver (DOM watching)                      │
-│  └─ DOM Filtering (hide/show logic)                      │
+│  ├─ BUILT_IN_ADS_PATTERNS (auto-block sponsored)        │
+│  ├─ KeywordMatcher (regex + whitelist)                  │
+│  ├─ normalizeText() (diacritic removal)                 │
+│  ├─ findPostContainer() (DOM traversal)                 │
+│  ├─ Stats (increment/track)                             │
+│  ├─ Migration (v1→v2)                                   │
+│  └─ MutationObserver (DOM watching)                     │
 │                                                          │
-│  STORAGE LAYER                                          │
-│  ├─ chrome.storage.sync (settings, version)            │
-│  └─ chrome.storage.local (keywords, stats)             │
+│  i18n (_locales/)                                        │
+│  ├─ vi/messages.json (Vietnamese)                       │
+│  └─ en/messages.json (English)                          │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
-```
-
-### Message Flow
-
-```
-POPUP ──(chrome.tabs.sendMessage)──> CONTENT SCRIPT
-                                           │
-                          ┌─────────────────┼─────────────────┐
-                          │                 │                 │
-                          v                 v                 v
-                   DOM Filtering        Storage Update   MutationObserver
-                                           │
-                                           v
-                                   firebase/facebook.com
 ```
 
 ---
 
 ## Core Modules
 
-### 1. KeywordMatcher (content.js + src/core/matcher.js)
+### 1. Built-in Ads Blocking (content.js)
 
-**Purpose:** High-performance regex-based keyword matching with word boundary support
+**Purpose:** Automatically block sponsored/suggested content without user keywords
+
+```javascript
+const BUILT_IN_ADS_PATTERNS = [
+  'Được tài trợ',      // Vietnamese sponsored
+  'Đề xuất cho bạn',   // Vietnamese suggested
+  'Sponsored',         // English sponsored
+  'Suggested for you', // English suggested
+  'Paid partnership',
+  'Duoc tai tro',      // No diacritics version
+];
+```
+
+**Matching Strategy:**
+1. Scan all `[dir="auto"], span, a` elements
+2. Normalize text (remove diacritics)
+3. Check against BUILT_IN_ADS_PATTERNS
+4. If match → find post container → hide immediately
+
+### 2. KeywordMatcher (content.js)
+
+**Purpose:** Regex-based keyword matching with word boundary support
 
 **Key Features:**
-- Compiles keyword array into single alternation regex: `\b(?:keyword1|keyword2|...)\b`
-- Word boundary `\b` prevents false matches (e.g., "spam" won't match "antispam")
-- Case-insensitive (flag `i`) + Unicode support (flag `u`)
-- Safety limits: max 5000 keywords, 1MB pattern size
+- **Vietnamese-aware word boundary**: Uses `(?<![a-zA-Z0-9])(?:keywords)(?![a-zA-Z0-9])` instead of `\b`
+- **Whitelist support**: Prevents blocking whitelisted terms
+- **Regex patterns**: Optional user-defined regex
+- **Case-insensitive**: Default behavior with Unicode flag
 
-**Usage:**
 ```javascript
-const matcher = new KeywordMatcher(['facebook', 'spam', 'ads']);
-const text = "I hate spam posts";
+const matcher = new KeywordMatcher(keywords, whitelist);
 if (matcher.matches(text)) {
-  // Hide this post
+  // Block this content
 }
 ```
 
-**Performance:** O(n) text scanning (single regex pass)
+**Safety Limits:**
+- Max 5000 keywords
+- Max 1MB pattern size
 
-**File Locations:**
-- Inline: `/Users/quang/develop/fb-content-blocker/content.js` (lines 16-66)
-- Modular: `/Users/quang/develop/fb-content-blocker/src/core/matcher.js` (full export)
+### 3. normalizeText() (content.js)
 
----
+**Purpose:** Remove Vietnamese diacritics for fuzzy matching
 
-### 2. Stats (content.js + src/core/stats.js)
+```javascript
+function normalizeText(text) {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')  // Remove combining diacritics
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+}
 
-**Purpose:** Track blocked post statistics with automatic daily reset
+// Example:
+normalizeText('Được tài trợ') // → 'duoc tai tro'
+```
 
-**Data Structure:**
+### 4. findPostContainer() (content.js)
+
+**Purpose:** Traverse DOM to find actual post container for hiding
+
+```javascript
+function findPostContainer(element) {
+  let current = element;
+  let maxDepth = 15;
+  while (current && maxDepth > 0) {
+    // Check for Facebook post containers
+    const pagelet = current.getAttribute('data-pagelet');
+    const role = current.getAttribute('role');
+    if (pagelet?.startsWith('FeedUnit')) return current;
+    if (role === 'article') return current;
+    current = current.parentElement;
+    maxDepth--;
+  }
+  return element;
+}
+```
+
+### 5. Stats (content.js)
+
+**Purpose:** Track blocked post statistics with daily reset
+
 ```javascript
 {
-  today: number,        // Blocked posts today (resets at midnight)
-  total: number,        // All-time blocked posts
-  lastReset: "2025-12-23"  // ISO date of last daily reset
+  today: number,           // Resets at midnight
+  total: number,           // All-time count
+  lastReset: "2025-12-23"  // ISO date
 }
 ```
 
-**Key Features:**
-- Automatic daily counter reset based on ISO date comparison
-- Persistent storage via `chrome.storage.local`
-- Methods: `increment()`, `get()`, `reset()`
-
-**Usage:**
-```javascript
-const stats = await Stats.increment(); // { today: 5, total: 42 }
-```
-
-**File Locations:**
-- Inline: `/Users/quang/develop/fb-content-blocker/content.js` (lines 71-94)
-- Modular: `/Users/quang/develop/fb-content-blocker/src/core/stats.js` (full export)
-
 ---
 
-### 3. Migration (content.js + src/utils/migration.js)
-
-**Purpose:** Handle v1→v2 data format upgrade
-
-**Migration Path:**
-```
-v1: keywords as string[] in chrome.storage.sync
-    ↓
-v2: keywords as object[] in chrome.storage.local
-    {
-      id: UUID,
-      text: string,
-      category: "default",
-      isRegex: false,
-      caseSensitive: false
-    }
-```
-
-**Key Features:**
-- One-time migration trigger at content script init
-- Handles partial migrations (mixed formats)
-- Preserves existing enabled/disabled state
-- Sets version flag to prevent re-migration
-
-**Usage:**
-```javascript
-const result = await Migration.migrateV1ToV2();
-// { migrated: true/false, count: number }
-```
-
-**File Locations:**
-- Inline: `/Users/quang/develop/fb-content-blocker/content.js` (lines 99-145)
-- Modular: `/Users/quang/develop/fb-content-blocker/src/utils/migration.js` (full export)
-
----
-
-### 4. DOM Filtering (content.js)
-
-**Purpose:** Identify and hide blocked posts in Facebook feed
-
-**Post Selectors (Multiple Fallbacks):**
-```javascript
-[
-  '[data-pagelet^="FeedUnit"]',      // Facebook 2024+ feed structure
-  '[role="article"]',                 // Standard article posts
-  'div[data-ad-preview="message"]',   // Sponsored content
-  '.x1yztbdb.x1n2onr6.xh8yej3.x1ja2u2z'  // Utility class-based posts
-]
-```
-
-**Flow:**
-1. MutationObserver detects DOM changes
-2. Debounces filter calls (300ms) to prevent performance issues
-3. Iterates through post selectors
-4. Tests each post's textContent against keyword regex
-5. If match: hide post + create placeholder with unhide button
-6. Track in stats
-
-**State Management:**
-- `data-fb-blocked="true"` - Post is hidden
-- `data-fb-blocked="shown"` - User clicked unhide
-- `data-original-display` - Original CSS display value
-
-**File Location:** `/Users/quang/develop/fb-content-blocker/content.js` (lines 228-288)
-
----
-
-### 5. Popup UI (popup.html/popup.js/popup.css)
-
-**Purpose:** User interface for keyword management and settings
-
-**Features:**
-1. **Keyword Management**
-   - Single keyword add with Enter key support
-   - Delete button per keyword
-   - Keyword count display
-
-2. **Bulk Operations**
-   - Toggle bulk textarea
-   - Multi-line input (one keyword per line)
-   - Duplicate detection
-   - Status alert (added count + duplicates skipped)
-
-3. **Statistics Display**
-   - Today's blocked count
-   - Total all-time blocked
-   - Updates in real-time
-
-4. **Import/Export**
-   - Export as JSON: `{ version, exportedAt, keywords, stats }`
-   - Import with validation:
-     - File size limit: 10MB
-     - Keyword count limit: 5000 total
-     - Keyword length limit: 500 chars
-     - Duplicate detection
-   - Force isRegex=false on import (security)
-
-5. **Enable/Disable Toggle**
-   - Chrome.storage.sync persisted setting
-   - Syncs across devices
-
-**File Locations:**
-- HTML: `/Users/quang/develop/fb-content-blocker/popup.html`
-- JavaScript: `/Users/quang/develop/fb-content-blocker/popup.js` (367 lines)
-- CSS: `/Users/quang/develop/fb-content-blocker/popup.css`
-
----
-
-## Storage Architecture
-
-### Chrome Storage Strategy
-
-| Storage Type | Use Case | Limit | Benefits |
-|---|---|---|---|
-| `chrome.storage.sync` | Settings, version flag, enabled state | 100KB | Cross-device sync, backup |
-| `chrome.storage.local` | Keywords, statistics | 5MB+ | Device-only, large data support, fast access |
-| `chrome.storage.session` | Runtime state (unused in v1) | 1MB | Auto-cleanup on exit |
-
-### Data Schema
+## Storage Schema
 
 **chrome.storage.sync:**
 ```javascript
 {
-  version: 2,              // Current data version
-  enabled: true,           // Extension enabled/disabled
+  version: 2,
+  enabled: true,
+  blockComments: true,
+  caseSensitive: false,
+  showPlaceholder: true
 }
 ```
 
@@ -250,103 +185,30 @@ const result = await Migration.migrateV1ToV2();
 ```javascript
 {
   keywords: [
-    {
-      id: "uuid-1",
-      text: "facebook",
-      category: "default",
-      isRegex: false,
-      caseSensitive: false
-    },
-    ...
+    { id: "uuid", text: "spam", category: "default", isRegex: false }
   ],
-  stats: {
-    today: 5,
-    total: 42,
-    lastReset: "2025-12-23"
-  }
+  whitelist: [
+    { id: "uuid", text: "facebook" }
+  ],
+  stats: { today: 5, total: 42, lastReset: "2025-12-23" }
 }
 ```
 
 ---
 
-## Message Passing Protocol
+## i18n Structure
 
-### Content Script Initialization
+**_locales/vi/messages.json** (Vietnamese - default)
+**_locales/en/messages.json** (English)
 
-```javascript
-// content.js init sequence
-1. Migration.migrateV1ToV2() - upgrade old data
-2. loadSettings() - fetch keywords & enabled state
-3. setupObserver() - attach MutationObserver
-4. filterContent() - scan existing DOM
-5. Listen for storage.onChanged events
-6. Listen for runtime.onMessage from popup
+**Usage in HTML:**
+```html
+<span data-i18n="keywordsTitle"></span>
 ```
 
-### Popup → Content Script
-
+**Usage in JS:**
 ```javascript
-// When user modifies keywords in popup
-notifyContentScript() {
-  chrome.tabs.sendMessage(tabId, { action: 'update' })
-}
-
-// Content script receives & reacts
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.action === 'update') {
-    loadSettings()
-    resetHiddenPosts()
-    filterContent()
-  }
-})
-```
-
-### Cross-Storage Updates
-
-```javascript
-// Storage listener automatically triggers in content script
-chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local' && changes.keywords) {
-    matcher.update(changes.keywords.newValue)
-    filterContent()
-  }
-  if (areaName === 'sync' && changes.enabled) {
-    enabled = changes.enabled.newValue
-  }
-})
-```
-
----
-
-## Testing
-
-### Test File: `/Users/quang/develop/fb-content-blocker/tests/matcher.test.js`
-
-**Test Count:** 23 unit tests
-**Focus Areas:**
-1. Word boundary matching (8 tests)
-   - "book" should NOT match "facebook" ✓
-   - "book" should match "a book" ✓
-   - "spam" should NOT match "antispam" ✓
-
-2. Case-insensitive matching (3 tests)
-   - "FACEBOOK" matches "Facebook" ✓
-
-3. Multiple keyword matching (4 tests)
-   - Alternation with multiple keywords ✓
-
-4. Special character handling (4 tests)
-   - Escapes: `.*+?^${}()|[\]\\` ✓
-
-5. Edge cases (4 tests)
-   - Empty keywords array ✓
-   - Empty/null text ✓
-   - Unicode support ✓
-
-**Run Tests:**
-```bash
-cd /Users/quang/develop/fb-content-blocker
-node tests/matcher.test.js
+chrome.i18n.getMessage('keywordsTitle')
 ```
 
 ---
@@ -355,85 +217,66 @@ node tests/matcher.test.js
 
 ```
 fb-content-blocker/
-├── docs/                          # Documentation (this file)
-├── src/
-│   ├── core/
-│   │   ├── matcher.js            # Modular KeywordMatcher export
-│   │   └── stats.js              # Modular Stats export
-│   └── utils/
-│       └── migration.js           # Modular Migration export
+├── _locales/
+│   ├── vi/messages.json      # Vietnamese translations
+│   └── en/messages.json      # English translations
+├── docs/
+│   ├── codebase-summary.md   # This file
+│   ├── code-standards.md
+│   ├── system-architecture.md
+│   └── api-reference.md
 ├── tests/
-│   └── matcher.test.js            # 23 unit tests
+│   └── matcher.test.js       # 31 unit tests
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-├── content.js                     # Main content script (289 lines)
-├── content.css                    # Content styling
-├── popup.html                     # Popup UI template
-├── popup.js                       # Popup logic (367 lines)
-├── popup.css                      # Popup styling
-├── manifest.json                  # MV3 manifest (required)
-├── CLAUDE.md                      # Agent documentation
-└── README.md                      # User guide
+├── content.js                # Main content script (~600 lines)
+├── content.css               # Content styling
+├── popup.html/js/css         # Popup UI
+├── options.html/js/css       # Options page
+└── manifest.json             # MV3 manifest
 ```
 
 ---
 
-## Performance Characteristics
+## Testing
 
-### Memory Usage
-- Compiled regex: ~2KB for 100 keywords
-- Keywords array: ~5KB for 100 keywords (100 bytes avg per keyword)
-- DOM placeholders: 1 per blocked post (lightweight)
+**Run tests:**
+```bash
+node tests/matcher.test.js
+```
 
-### CPU Utilization
-- Regex compilation: ~10ms for 100 keywords (one-time on init/update)
-- Text matching: ~0.1ms per post (single regex pass)
-- MutationObserver debounce: 300ms (configurable)
-- Filtering 100 posts: ~10ms total
-
-### Storage Footprint
-- 100 keywords: ~5KB in local storage
-- Stats: ~100 bytes
-- Typical user setup: <50KB total
+**Test Coverage (31 tests):**
+- Word boundary matching (Vietnamese + English)
+- Case-insensitive matching
+- Multiple keyword matching
+- Special character escaping
+- Whitelist functionality
+- Regex keyword support
+- Unicode support
 
 ---
 
-## Known Limitations
+## Performance
 
-1. **Regex Alternation Limit:** Max 5000 keywords before pattern size warning
-2. **Special Characters:** All regex metacharacters must be escaped in user input
-3. **Word Boundaries:** `\b` may behave differently with Unicode letters (requires `u` flag)
-4. **Facebook Selectors:** Relies on multiple fallback selectors due to Facebook's frequent DOM changes
-5. **Storage Sync:** Limited to 100KB total across all extension data (use local storage for large data)
+| Metric | Value |
+|--------|-------|
+| Debounce interval | 150ms |
+| Regex compilation | ~10ms for 100 keywords |
+| Text matching | ~0.1ms per post |
+| Memory (100 keywords) | ~7KB |
 
 ---
 
-## Phase 1 Completion Status
+## Debug Mode
 
-### Features Implemented
-- ✓ Word boundary matching (`\b` regex with safety limits)
-- ✓ Bulk keyword add (multi-line textarea)
-- ✓ Import/Export JSON with validation
-- ✓ Statistics counter (daily + total)
-- ✓ v1→v2 data migration
-- ✓ 23 unit tests (all passing)
-- ✓ MutationObserver debouncing (300ms)
+Enable in `content.js`:
+```javascript
+const DEBUG = true;  // Set to false for production
+```
 
-### Quality Metrics
-- **Test Coverage:** KeywordMatcher fully tested (23 tests)
-- **Security:** Input validation, regex escaping, file size limits
-- **Performance:** Optimized regex compilation, debounced DOM updates
-- **Documentation:** Complete architecture documentation
-
-### Next Phase (Phase 2) Planned
-- [ ] Settings UI improvements (categories, sorting)
-- [ ] Regex pattern support (opt-in)
-- [ ] Case-sensitive matching option
-- [ ] Post preview/read mode
-- [ ] Export statistics report
-- [ ] Dark mode UI
+Logs appear in Console with `[FB Blocker]` prefix.
 
 ---
 
@@ -441,13 +284,26 @@ fb-content-blocker/
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2025-12-23 | Initial release - Phase 1 Core Implementation |
+| 2.1.0 | 2025-12-23 | Built-in ads blocking, fuzzy matching, debug improvements |
+| 2.0.0 | 2025-12-23 | i18n, options page, whitelist, regex, comments blocking |
+| 1.0.0 | 2025-12-23 | Initial release - word boundary matching |
 
 ---
 
-## References
+## Quick Reference
 
-- [Chrome Extension MV3 Documentation](https://developer.chrome.com/docs/extensions/mv3/)
-- [Chrome Storage API Guide](https://developer.chrome.com/docs/extensions/reference/storage/)
-- [Regex Word Boundary Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions)
-- [MutationObserver Performance](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver)
+**Block sponsored posts:**
+- Automatic via BUILT_IN_ADS_PATTERNS (no setup needed)
+
+**Add custom keyword:**
+- Popup → type keyword → Add
+
+**Block comments:**
+- Options → Enable "Block comments"
+
+**Whitelist a term:**
+- Options → Whitelist section → Add
+
+**Debug issues:**
+- Set `DEBUG = true` in content.js
+- Check Console for `[FB Blocker]` logs
