@@ -4,59 +4,124 @@
  */
 
 // ============================================
+// Debug Mode (set to true for troubleshooting)
+// ============================================
+const DEBUG = false;
+
+function debugLog(...args) {
+  if (DEBUG) {
+    console.log('[FB Blocker]', ...args);
+  }
+}
+
+// ============================================
 // Inline modules (no bundler for content script)
 // ============================================
 
 /**
  * KeywordMatcher - Regex-based keyword matching with word boundary support
+ * Supports: plain keywords, regex patterns, whitelist
  */
 const MAX_KEYWORDS = 5000;
 const MAX_PATTERN_SIZE = 1024 * 1024; // 1MB regex pattern limit
 
 class KeywordMatcher {
-  constructor(keywords = []) {
+  constructor(keywords = [], whitelist = []) {
     this.keywords = keywords;
+    this.whitelist = whitelist;
     this.compiledRegex = null;
+    this.regexPatterns = [];
+    this.whitelistRegex = null;
     this.compile();
   }
 
   compile() {
+    this.compiledRegex = null;
+    this.regexPatterns = [];
+    this.whitelistRegex = null;
+
     if (this.keywords.length === 0) {
-      this.compiledRegex = null;
       return;
     }
 
-    // Safety: Limit keywords to prevent regex explosion
+    // Safety: Limit keywords
     const safeKeywords = this.keywords.slice(0, MAX_KEYWORDS);
     if (this.keywords.length > MAX_KEYWORDS) {
-      console.warn(`[FB Blocker] Keyword limit reached: ${MAX_KEYWORDS}. Ignoring ${this.keywords.length - MAX_KEYWORDS} keywords.`);
+      console.warn(`[FB Blocker] Keyword limit: ${MAX_KEYWORDS}. Ignoring ${this.keywords.length - MAX_KEYWORDS} keywords.`);
     }
 
-    const escaped = safeKeywords.map(kw => {
+    // Separate regex and plain keywords
+    const plainKeywords = [];
+    for (const kw of safeKeywords) {
       const text = typeof kw === 'string' ? kw : kw.text;
-      return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    });
+      const isRegex = typeof kw === 'object' && kw.isRegex;
 
-    const pattern = `\\b(?:${escaped.join('|')})\\b`;
-
-    // Safety: Check pattern size
-    if (pattern.length > MAX_PATTERN_SIZE) {
-      console.error('[FB Blocker] Regex pattern too large. Reduce keywords.');
-      this.compiledRegex = null;
-      return;
+      if (isRegex) {
+        try {
+          this.regexPatterns.push(new RegExp(text, 'giu'));
+        } catch (e) {
+          console.warn(`[FB Blocker] Invalid regex: ${text}`);
+        }
+      } else {
+        plainKeywords.push(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      }
     }
 
-    this.compiledRegex = new RegExp(pattern, 'giu');
+    // Compile plain keywords into single regex
+    if (plainKeywords.length > 0) {
+      const pattern = `\\b(?:${plainKeywords.join('|')})\\b`;
+
+      if (pattern.length > MAX_PATTERN_SIZE) {
+        console.error('[FB Blocker] Pattern too large. Reduce keywords.');
+      } else {
+        this.compiledRegex = new RegExp(pattern, 'giu');
+      }
+    }
+
+    // Compile whitelist
+    if (this.whitelist.length > 0) {
+      const whitelistTexts = this.whitelist.map(item => {
+        const text = typeof item === 'string' ? item : item.text;
+        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      });
+      this.whitelistRegex = new RegExp(`\\b(?:${whitelistTexts.join('|')})\\b`, 'giu');
+    }
   }
 
   matches(text) {
-    if (!this.compiledRegex || !text) return false;
-    this.compiledRegex.lastIndex = 0;
-    return this.compiledRegex.test(text);
+    if (!text) return false;
+    if (!this.compiledRegex && this.regexPatterns.length === 0) return false;
+
+    // Check whitelist first - if match, don't block
+    if (this.whitelistRegex) {
+      this.whitelistRegex.lastIndex = 0;
+      if (this.whitelistRegex.test(text)) {
+        return false;
+      }
+    }
+
+    // Check plain keywords
+    if (this.compiledRegex) {
+      this.compiledRegex.lastIndex = 0;
+      if (this.compiledRegex.test(text)) {
+        return true;
+      }
+    }
+
+    // Check regex patterns
+    for (const re of this.regexPatterns) {
+      re.lastIndex = 0;
+      if (re.test(text)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  update(keywords) {
+  update(keywords, whitelist = []) {
     this.keywords = keywords;
+    this.whitelist = whitelist;
     this.compile();
   }
 
@@ -148,11 +213,26 @@ const Migration = {
 // Main content script logic
 // ============================================
 
-let matcher = new KeywordMatcher([]);
+let matcher = new KeywordMatcher([], []);
 let enabled = true;
+let blockComments = true;
 let observer = null;
 let debounceTimer = null;
 const DEBOUNCE_MS = 300;
+
+// Text content cache for performance (WeakMap doesn't prevent GC of elements)
+const textCache = new WeakMap();
+const CACHE_TTL = 5000; // 5 seconds
+
+function getCachedText(element) {
+  const cached = textCache.get(element);
+  if (cached && Date.now() - cached.time < CACHE_TTL) {
+    return cached.text;
+  }
+  const text = element.textContent || '';
+  textCache.set(element, { text, time: Date.now() });
+  return text;
+}
 
 init();
 
@@ -175,17 +255,28 @@ async function init() {
   });
 
   // Listen for storage changes
-  chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === 'local' && changes.keywords) {
-      matcher.update(changes.keywords.newValue || []);
-      resetHiddenPosts();
-      filterContent();
-    }
-    if (areaName === 'sync' && changes.enabled) {
-      enabled = changes.enabled.newValue !== false;
-      if (!enabled) {
+  chrome.storage.onChanged.addListener(async (changes, areaName) => {
+    if (areaName === 'local') {
+      if (changes.keywords || changes.whitelist) {
+        const { keywords = [], whitelist = [] } = await chrome.storage.local.get(['keywords', 'whitelist']);
+        matcher.update(keywords, whitelist);
         resetHiddenPosts();
-      } else {
+        filterContent();
+      }
+    }
+    if (areaName === 'sync') {
+      if (changes.enabled) {
+        enabled = changes.enabled.newValue !== false;
+        if (!enabled) {
+          resetHiddenPosts();
+        } else {
+          filterContent();
+        }
+      }
+      if (changes.settings) {
+        const settings = changes.settings.newValue || {};
+        blockComments = settings.blockComments !== false;
+        resetHiddenPosts();
         filterContent();
       }
     }
@@ -195,14 +286,18 @@ async function init() {
 async function loadSettings() {
   try {
     const [localData, syncData] = await Promise.all([
-      chrome.storage.local.get('keywords'),
-      chrome.storage.sync.get('enabled')
+      chrome.storage.local.get(['keywords', 'whitelist']),
+      chrome.storage.sync.get(['enabled', 'settings'])
     ]);
 
     const keywords = localData.keywords || [];
-    enabled = syncData.enabled !== false;
+    const whitelist = localData.whitelist || [];
+    const settings = syncData.settings || {};
 
-    matcher.update(keywords);
+    enabled = syncData.enabled !== false;
+    blockComments = settings.blockComments !== false;
+
+    matcher.update(keywords, whitelist);
   } catch (error) {
     console.error('[FB Blocker] loadSettings error:', error);
   }
@@ -228,26 +323,135 @@ function setupObserver() {
 function filterContent() {
   if (!enabled || matcher.count === 0) return;
 
-  // Facebook post selectors (multiple fallbacks)
-  const postSelectors = [
-    '[data-pagelet^="FeedUnit"]',
-    '[role="article"]',
-    'div[data-ad-preview="message"]',
-    '.x1yztbdb.x1n2onr6.xh8yej3.x1ja2u2z'
+  debugLog('filterContent called', { enabled, keywordCount: matcher.count });
+
+  try {
+    // Facebook post selectors (updated for current FB DOM - Dec 2024)
+    // Priority: most specific first, fallback to generic
+    const postSelectors = [
+      // Primary: Feed unit containers (most stable)
+      '[data-pagelet^="FeedUnit"]',
+
+      // Posts with role="article" (standard accessibility)
+      '[role="article"]',
+
+      // Sponsored/Ad posts
+      '[data-pagelet*="FeedUnit"][data-pagelet*="Sponsored"]',
+      'div[data-ad-preview="message"]',
+
+      // Story containers in feed
+      'div[data-pagelet="FeedUnit"] > div > div',
+
+      // Generic post wrapper (FB uses nested divs with these patterns)
+      'div[class*="x1yztbdb"][class*="x1n2onr6"]',
+
+      // Fallback: any div with substantial content in feed area
+      'div[data-pagelet="Feed"] div[dir="auto"]'
+    ];
+
+    // Filter posts
+    let totalPosts = 0;
+    let blockedPosts = 0;
+
+    postSelectors.forEach(selector => {
+      const posts = document.querySelectorAll(selector);
+      totalPosts += posts.length;
+
+      posts.forEach(post => {
+        if (post.dataset.fbBlocked === 'true' || post.dataset.fbBlocked === 'shown') return;
+
+        const text = getCachedText(post);
+
+        if (matcher.matches(text)) {
+          debugLog('Blocking post:', text.substring(0, 100) + '...');
+          hidePost(post);
+          blockedPosts++;
+        }
+      });
+    });
+
+    debugLog(`Scanned ${totalPosts} posts, blocked ${blockedPosts}`);
+
+    // Filter comments
+    filterComments();
+  } catch (error) {
+    console.error('[FB Blocker] filterContent error:', error);
+  }
+}
+
+function filterComments() {
+  if (!enabled || !blockComments || matcher.count === 0) return;
+
+  // Facebook comment selectors (updated for current FB DOM - Dec 2024)
+  const commentSelectors = [
+    // Comment body with ARIA label
+    '[aria-label*="Comment"]',
+    '[aria-label*="comment"]',
+
+    // Comment test IDs (may change but stable for now)
+    '[data-testid="UFI2Comment/body"]',
+    '[data-testid*="comment"]',
+
+    // Comment content containers
+    'div[dir="auto"][class*="x1lliihq"]',
+    'div[dir="auto"][class*="xzsf02u"]',
+
+    // Nested comment text
+    'ul[role="list"] div[dir="auto"]',
+
+    // Reply containers
+    'div[aria-label*="Reply"]',
+    'div[aria-label*="reply"]'
   ];
 
-  postSelectors.forEach(selector => {
-    const posts = document.querySelectorAll(selector);
-    posts.forEach(post => {
-      if (post.dataset.fbBlocked === 'true' || post.dataset.fbBlocked === 'shown') return;
+  commentSelectors.forEach(selector => {
+    const comments = document.querySelectorAll(selector);
+    comments.forEach(comment => {
+      // Skip if already processed
+      if (comment.dataset.fbCommentBlocked === 'true' ||
+          comment.dataset.fbCommentBlocked === 'shown') return;
 
-      const text = post.textContent || '';
+      // Don't process if it's inside a hidden post
+      if (comment.closest('[data-fb-blocked="true"]')) return;
+
+      const text = getCachedText(comment);
 
       if (matcher.matches(text)) {
-        hidePost(post);
+        hideComment(comment);
       }
     });
   });
+}
+
+async function hideComment(comment) {
+  comment.dataset.fbCommentBlocked = 'true';
+  comment.dataset.originalDisplay = comment.style.display;
+  comment.style.display = 'none';
+
+  // Increment stats
+  Stats.increment();
+
+  // Create small inline placeholder for comments (no innerHTML for XSS safety)
+  const placeholder = document.createElement('span');
+  placeholder.className = 'fb-blocker-comment-placeholder';
+
+  const textSpan = document.createElement('span');
+  textSpan.className = 'fb-blocker-comment-text';
+  textSpan.textContent = '[Bình luận đã ẩn]';
+  placeholder.appendChild(textSpan);
+
+  const showBtn = document.createElement('button');
+  showBtn.className = 'fb-blocker-comment-show';
+  showBtn.textContent = 'Hiện';
+  showBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    comment.style.display = comment.dataset.originalDisplay || '';
+    comment.dataset.fbCommentBlocked = 'shown';
+    placeholder.remove();
+  });
+  placeholder.appendChild(showBtn);
+
+  comment.parentNode.insertBefore(placeholder, comment);
 }
 
 async function hidePost(post) {
@@ -258,31 +462,45 @@ async function hidePost(post) {
   // Increment stats
   Stats.increment();
 
-  // Create placeholder
+  // Create placeholder (no innerHTML for XSS safety)
   const placeholder = document.createElement('div');
   placeholder.className = 'fb-blocker-placeholder';
-  placeholder.innerHTML = `
-    <span>Nội dung đã bị ẩn bởi FB Content Blocker</span>
-    <button class="fb-blocker-show-btn">Hiện</button>
-  `;
 
-  placeholder.querySelector('.fb-blocker-show-btn').addEventListener('click', () => {
+  const textSpan = document.createElement('span');
+  textSpan.textContent = 'Nội dung đã bị ẩn bởi FB Content Blocker';
+  placeholder.appendChild(textSpan);
+
+  const showBtn = document.createElement('button');
+  showBtn.className = 'fb-blocker-show-btn';
+  showBtn.textContent = 'Hiện';
+  showBtn.addEventListener('click', () => {
     post.style.display = post.dataset.originalDisplay || '';
     post.dataset.fbBlocked = 'shown';
     placeholder.remove();
   });
+  placeholder.appendChild(showBtn);
 
   post.parentNode.insertBefore(placeholder, post);
 }
 
 function resetHiddenPosts() {
-  // Remove all placeholders
+  // Remove all post placeholders
   document.querySelectorAll('.fb-blocker-placeholder').forEach(el => el.remove());
+
+  // Remove all comment placeholders
+  document.querySelectorAll('.fb-blocker-comment-placeholder').forEach(el => el.remove());
 
   // Reset blocked posts
   document.querySelectorAll('[data-fb-blocked]').forEach(post => {
     post.style.display = post.dataset.originalDisplay || '';
     delete post.dataset.fbBlocked;
     delete post.dataset.originalDisplay;
+  });
+
+  // Reset blocked comments
+  document.querySelectorAll('[data-fb-comment-blocked]').forEach(comment => {
+    comment.style.display = comment.dataset.originalDisplay || '';
+    delete comment.dataset.fbCommentBlocked;
+    delete comment.dataset.originalDisplay;
   });
 }

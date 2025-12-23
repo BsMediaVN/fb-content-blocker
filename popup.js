@@ -12,6 +12,19 @@ async function init() {
   setupEventListeners();
 }
 
+// Category labels for display
+const CATEGORY_LABELS = {
+  default: 'Mặc định',
+  spam: 'Spam',
+  ads: 'Quảng cáo',
+  politics: 'Chính trị',
+  other: 'Khác'
+};
+
+// Current filter state
+let currentSearch = '';
+let currentCategory = '';
+
 function setupEventListeners() {
   // Single keyword add
   document.getElementById('add-btn').addEventListener('click', addKeyword);
@@ -36,6 +49,26 @@ function setupEventListeners() {
     document.getElementById('import-file').click();
   });
   document.getElementById('import-file').addEventListener('change', handleImport);
+
+  // Search and filter
+  document.getElementById('search-input').addEventListener('input', debounce((e) => {
+    currentSearch = e.target.value.toLowerCase();
+    loadKeywords();
+  }, 200));
+
+  document.getElementById('category-filter').addEventListener('change', (e) => {
+    currentCategory = e.target.value;
+    loadKeywords();
+  });
+}
+
+// Debounce utility
+function debounce(fn, delay) {
+  let timer = null;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
 }
 
 // ============================================
@@ -84,19 +117,44 @@ function renderKeywords(keywords) {
   const list = document.getElementById('keywords-list');
   const countEl = document.getElementById('keyword-count');
 
+  // Filter keywords based on search and category
+  let filtered = keywords;
+
+  if (currentSearch) {
+    filtered = filtered.filter(kw => {
+      const text = typeof kw === 'string' ? kw : kw.text;
+      return text.toLowerCase().includes(currentSearch);
+    });
+  }
+
+  if (currentCategory) {
+    filtered = filtered.filter(kw => {
+      const cat = typeof kw === 'object' ? (kw.category || 'default') : 'default';
+      return cat === currentCategory;
+    });
+  }
+
   countEl.textContent = keywords.length;
 
-  if (keywords.length === 0) {
-    list.innerHTML = '<li class="empty-message">Chưa có từ khóa nào</li>';
+  if (filtered.length === 0) {
+    if (keywords.length === 0) {
+      list.innerHTML = '<li class="empty-message">Chưa có từ khóa nào</li>';
+    } else {
+      list.innerHTML = '<li class="empty-message">Không tìm thấy từ khóa phù hợp</li>';
+    }
     return;
   }
 
-  list.innerHTML = keywords.map((keyword, index) => {
+  list.innerHTML = filtered.map((keyword, index) => {
     const text = typeof keyword === 'string' ? keyword : keyword.text;
     const id = typeof keyword === 'object' ? keyword.id : index;
+    const category = typeof keyword === 'object' ? (keyword.category || 'default') : 'default';
+    const categoryLabel = CATEGORY_LABELS[category] || category;
+
     return `
       <li>
         <span>${escapeHtml(text)}</span>
+        <span class="category-badge ${category}">${categoryLabel}</span>
         <button class="delete-btn" data-id="${id}" data-index="${index}">Xóa</button>
       </li>
     `;
@@ -113,7 +171,9 @@ function renderKeywords(keywords) {
 
 async function addKeyword() {
   const input = document.getElementById('keyword-input');
+  const categoryInput = document.getElementById('category-input');
   const keyword = input.value.trim();
+  const category = categoryInput.value || 'default';
 
   if (!keyword) return;
 
@@ -133,7 +193,7 @@ async function addKeyword() {
     keywords.push({
       id: crypto.randomUUID(),
       text: keyword,
-      category: 'default',
+      category: category,
       isRegex: false,
       caseSensitive: false
     });
@@ -150,7 +210,9 @@ async function addKeyword() {
 
 async function addKeywordsBulk() {
   const textarea = document.getElementById('bulk-input');
+  const categoryInput = document.getElementById('category-input');
   const lines = textarea.value.split('\n').filter(line => line.trim());
+  const category = categoryInput.value || 'default';
 
   if (lines.length === 0) return;
 
@@ -175,7 +237,7 @@ async function addKeywordsBulk() {
       keywords.push({
         id: crypto.randomUUID(),
         text,
-        category: 'default',
+        category: category,
         isRegex: false,
         caseSensitive: false
       });

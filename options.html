@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FB Content Blocker - Cài đặt</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>FB Content Blocker</h1>
+      <p class="subtitle">Cài đặt nâng cao</p>
+    </header>
+
+    <!-- Stats Overview -->
+    <section class="card stats-card">
+      <h2>Thống kê</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-value" id="today-count">0</span>
+          <span class="stat-label">Hôm nay</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="total-count">0</span>
+          <span class="stat-label">Tổng cộng</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="keyword-count">0</span>
+          <span class="stat-label">Từ khóa</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="whitelist-count">0</span>
+          <span class="stat-label">Whitelist</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="card">
+      <h2>Cài đặt chung</h2>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Bật extension</span>
+          <span class="setting-desc">Bật/tắt chức năng chặn nội dung</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enabled-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Chặn bình luận</span>
+          <span class="setting-desc">Ẩn bình luận chứa từ khóa</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="block-comments-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Phân biệt hoa/thường</span>
+          <span class="setting-desc">Mặc định: không phân biệt</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="case-sensitive-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Keywords Management -->
+    <section class="card">
+      <h2>Quản lý từ khóa</h2>
+
+      <!-- Add keyword form -->
+      <div class="add-keyword-form">
+        <input type="text" id="keyword-input" placeholder="Nhập từ khóa...">
+        <select id="category-input">
+          <option value="default">Mặc định</option>
+          <option value="spam">Spam</option>
+          <option value="ads">Quảng cáo</option>
+          <option value="politics">Chính trị</option>
+          <option value="other">Khác</option>
+        </select>
+        <label class="checkbox-label">
+          <input type="checkbox" id="is-regex-input">
+          <span>Regex</span>
+        </label>
+        <button id="add-btn" class="btn primary">Thêm</button>
+      </div>
+
+      <!-- Search and filter -->
+      <div class="filter-row">
+        <input type="text" id="search-input" placeholder="Tìm kiếm từ khóa...">
+        <select id="category-filter">
+          <option value="">Tất cả</option>
+          <option value="default">Mặc định</option>
+          <option value="spam">Spam</option>
+          <option value="ads">Quảng cáo</option>
+          <option value="politics">Chính trị</option>
+          <option value="other">Khác</option>
+        </select>
+      </div>
+
+      <!-- Keywords table -->
+      <div class="table-container">
+        <table id="keywords-table">
+          <thead>
+            <tr>
+              <th>Từ khóa</th>
+              <th>Danh mục</th>
+              <th>Regex</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="keywords-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Whitelist -->
+    <section class="card">
+      <h2>Whitelist (Từ khóa ngoại lệ)</h2>
+      <p class="card-desc">Các từ khóa này sẽ không bị chặn dù match với blacklist</p>
+
+      <div class="add-keyword-form">
+        <input type="text" id="whitelist-input" placeholder="Nhập từ khóa whitelist...">
+        <button id="add-whitelist-btn" class="btn primary">Thêm</button>
+      </div>
+
+      <div class="whitelist-container">
+        <div id="whitelist-tags"></div>
+      </div>
+    </section>
+
+    <!-- Import/Export -->
+    <section class="card">
+      <h2>Sao lưu & Khôi phục</h2>
+      <div class="io-buttons">
+        <button id="export-btn" class="btn secondary">Xuất JSON</button>
+        <button id="import-btn" class="btn secondary">Nhập JSON</button>
+        <input type="file" id="import-file" accept=".json" hidden>
+        <button id="reset-stats-btn" class="btn danger">Đặt lại thống kê</button>
+      </div>
+    </section>
+
+    <!-- Regex Help -->
+    <section class="card">
+      <h2>Hướng dẫn Regex</h2>
+      <div class="help-content">
+        <p><code>.</code> - Khớp bất kỳ ký tự nào</p>
+        <p><code>*</code> - Khớp 0 hoặc nhiều lần</p>
+        <p><code>+</code> - Khớp 1 hoặc nhiều lần</p>
+        <p><code>?</code> - Khớp 0 hoặc 1 lần</p>
+        <p><code>[abc]</code> - Khớp a, b hoặc c</p>
+        <p><code>(a|b)</code> - Khớp a hoặc b</p>
+        <p><code>^</code> - Bắt đầu chuỗi</p>
+        <p><code>$</code> - Kết thúc chuỗi</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>FB Content Blocker v2.0.0</p>
+    </footer>
+  </div>
+
+  <script src="src/utils/regex-validator.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

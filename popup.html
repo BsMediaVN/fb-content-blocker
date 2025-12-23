@@ -25,6 +25,13 @@
     <!-- Single keyword input -->
     <div class="input-group">
       <input type="text" id="keyword-input" placeholder="Nhập từ khóa cần chặn...">
+      <select id="category-input">
+        <option value="default">Mặc định</option>
+        <option value="spam">Spam</option>
+        <option value="ads">Quảng cáo</option>
+        <option value="politics">Chính trị</option>
+        <option value="other">Khác</option>
+      </select>
       <button id="add-btn">Thêm</button>
     </div>
 
@@ -42,6 +49,19 @@
       <button id="export-btn" class="secondary-btn">Xuất JSON</button>
       <button id="import-btn" class="secondary-btn">Nhập JSON</button>
       <input type="file" id="import-file" accept=".json" hidden>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="filter-section">
+      <input type="text" id="search-input" placeholder="Tìm kiếm từ khóa...">
+      <select id="category-filter">
+        <option value="">Tất cả</option>
+        <option value="default">Mặc định</option>
+        <option value="spam">Spam</option>
+        <option value="ads">Quảng cáo</option>
+        <option value="politics">Chính trị</option>
+        <option value="other">Khác</option>
+      </select>
     </div>
 
     <!-- Keywords list -->

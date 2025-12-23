@@ -5,34 +5,87 @@
 
 // Inline KeywordMatcher for testing (same as in content.js)
 class KeywordMatcher {
-  constructor(keywords = []) {
+  constructor(keywords = [], whitelist = []) {
     this.keywords = keywords;
+    this.whitelist = whitelist;
     this.compiledRegex = null;
+    this.regexPatterns = [];
+    this.whitelistRegex = null;
     this.compile();
   }
 
   compile() {
+    this.compiledRegex = null;
+    this.regexPatterns = [];
+    this.whitelistRegex = null;
+
     if (this.keywords.length === 0) {
-      this.compiledRegex = null;
       return;
     }
 
-    const escaped = this.keywords.map(kw => {
+    const plainKeywords = [];
+    for (const kw of this.keywords) {
       const text = typeof kw === 'string' ? kw : kw.text;
-      return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    });
+      const isRegex = typeof kw === 'object' && kw.isRegex;
 
-    this.compiledRegex = new RegExp(`\\b(?:${escaped.join('|')})\\b`, 'giu');
+      if (isRegex) {
+        try {
+          this.regexPatterns.push(new RegExp(text, 'giu'));
+        } catch (e) {
+          console.warn(`Invalid regex: ${text}`);
+        }
+      } else {
+        plainKeywords.push(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      }
+    }
+
+    if (plainKeywords.length > 0) {
+      this.compiledRegex = new RegExp(`\\b(?:${plainKeywords.join('|')})\\b`, 'giu');
+    }
+
+    if (this.whitelist.length > 0) {
+      const whitelistTexts = this.whitelist.map(item => {
+        const text = typeof item === 'string' ? item : item.text;
+        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      });
+      this.whitelistRegex = new RegExp(`\\b(?:${whitelistTexts.join('|')})\\b`, 'giu');
+    }
   }
 
   matches(text) {
-    if (!this.compiledRegex || !text) return false;
-    this.compiledRegex.lastIndex = 0;
-    return this.compiledRegex.test(text);
+    if (!text) return false;
+    if (!this.compiledRegex && this.regexPatterns.length === 0) return false;
+
+    // Check whitelist first
+    if (this.whitelistRegex) {
+      this.whitelistRegex.lastIndex = 0;
+      if (this.whitelistRegex.test(text)) {
+        return false;
+      }
+    }
+
+    // Check plain keywords
+    if (this.compiledRegex) {
+      this.compiledRegex.lastIndex = 0;
+      if (this.compiledRegex.test(text)) {
+        return true;
+      }
+    }
+
+    // Check regex patterns
+    for (const re of this.regexPatterns) {
+      re.lastIndex = 0;
+      if (re.test(text)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  update(keywords) {
+  update(keywords, whitelist = []) {
     this.keywords = keywords;
+    this.whitelist = whitelist;
     this.compile();
   }
 
@@ -208,6 +261,62 @@ test('Update: recompiles with new keywords', () => {
 test('Count: returns correct keyword count', () => {
   const matcher = new KeywordMatcher(['a', 'b', 'c']);
   assertEqual(matcher.count, 3);
+});
+
+// Test 10: Whitelist functionality
+test('Whitelist: prevents blocking whitelisted term', () => {
+  const matcher = new KeywordMatcher(['spam'], ['spam filter']);
+  assertEqual(matcher.matches('this is spam filter'), false);
+});
+
+test('Whitelist: blocks non-whitelisted matches', () => {
+  const matcher = new KeywordMatcher(['spam'], ['filter']);
+  assertEqual(matcher.matches('this is spam'), true);
+});
+
+test('Whitelist: works with object format', () => {
+  const matcher = new KeywordMatcher(
+    [{ text: 'spam', id: '1' }],
+    [{ text: 'spam filter', id: '2' }]
+  );
+  assertEqual(matcher.matches('using spam filter'), false);
+});
+
+// Test 11: Regex keyword functionality
+test('Regex keyword: matches pattern', () => {
+  const matcher = new KeywordMatcher([{ text: 'sp[a@]m', isRegex: true }]);
+  assertEqual(matcher.matches('this is sp@m'), true);
+});
+
+test('Regex keyword: case insensitive', () => {
+  const matcher = new KeywordMatcher([{ text: 'SPAM', isRegex: true }]);
+  assertEqual(matcher.matches('this is spam'), true);
+});
+
+test('Regex keyword: mixed with plain keywords', () => {
+  const matcher = new KeywordMatcher([
+    'scam',
+    { text: 'sp[a@]m', isRegex: true }
+  ]);
+  assertEqual(matcher.matches('this is sp@m'), true);
+  assertEqual(matcher.matches('this is scam'), true);
+});
+
+test('Regex keyword: invalid regex is skipped', () => {
+  const matcher = new KeywordMatcher([
+    { text: '[invalid', isRegex: true },
+    'spam'
+  ]);
+  assertEqual(matcher.matches('this is spam'), true);
+});
+
+// Test 12: Update with whitelist
+test('Update: recompiles with whitelist', () => {
+  const matcher = new KeywordMatcher(['spam']);
+  assertEqual(matcher.matches('spam here'), true);
+
+  matcher.update(['spam'], ['spam here']);
+  assertEqual(matcher.matches('spam here'), false);
 });
 
 // ============================================
