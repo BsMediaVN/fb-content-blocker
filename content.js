@@ -68,8 +68,14 @@ class KeywordMatcher {
     }
 
     // Compile plain keywords into single regex
+    // Note: Using lookahead/lookbehind instead of \b for Vietnamese support
+    // \b only works with ASCII word characters, not Vietnamese/Unicode
+    // This approach: match keyword NOT preceded/followed by alphanumeric
     if (plainKeywords.length > 0) {
-      const pattern = `\\b(?:${plainKeywords.join('|')})\\b`;
+      // Pattern with Unicode-aware word boundaries
+      // (?<![a-zA-Z0-9]) = not preceded by ASCII alphanumeric
+      // (?![a-zA-Z0-9]) = not followed by ASCII alphanumeric
+      const pattern = `(?<![a-zA-Z0-9])(?:${plainKeywords.join('|')})(?![a-zA-Z0-9])`;
 
       if (pattern.length > MAX_PATTERN_SIZE) {
         console.error('[FB Blocker] Pattern too large. Reduce keywords.');
@@ -84,7 +90,7 @@ class KeywordMatcher {
         const text = typeof item === 'string' ? item : item.text;
         return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       });
-      this.whitelistRegex = new RegExp(`\\b(?:${whitelistTexts.join('|')})\\b`, 'giu');
+      this.whitelistRegex = new RegExp(`(?<![a-zA-Z0-9])(?:${whitelistTexts.join('|')})(?![a-zA-Z0-9])`, 'giu');
     }
   }
 
@@ -237,12 +243,18 @@ function getCachedText(element) {
 init();
 
 async function init() {
+  debugLog('=== FB Content Blocker initializing ===');
+
   // Run migration first
   await Migration.migrateV1ToV2();
 
   await loadSettings();
+  debugLog('Settings loaded:', { enabled, blockComments, keywordCount: matcher.count });
+
   setupObserver();
   filterContent();
+
+  debugLog('=== Initialization complete ===');
 
   // Listen for updates from popup
   chrome.runtime.onMessage.addListener((message) => {
@@ -296,6 +308,9 @@ async function loadSettings() {
 
     enabled = syncData.enabled !== false;
     blockComments = settings.blockComments !== false;
+
+    debugLog('Keywords loaded:', keywords.map(k => typeof k === 'string' ? k : k.text));
+    debugLog('Whitelist:', whitelist.map(w => typeof w === 'string' ? w : w.text));
 
     matcher.update(keywords, whitelist);
   } catch (error) {
@@ -353,8 +368,11 @@ function filterContent() {
     let totalPosts = 0;
     let blockedPosts = 0;
 
-    postSelectors.forEach(selector => {
+    postSelectors.forEach((selector, idx) => {
       const posts = document.querySelectorAll(selector);
+      if (posts.length > 0) {
+        debugLog(`Selector ${idx} [${selector.substring(0, 30)}...] found ${posts.length} elements`);
+      }
       totalPosts += posts.length;
 
       posts.forEach(post => {
@@ -362,15 +380,20 @@ function filterContent() {
 
         const text = getCachedText(post);
 
+        // Log sample text for debugging
+        if (DEBUG && text.length > 50) {
+          debugLog('Post text sample:', text.substring(0, 150).replace(/\n/g, ' '));
+        }
+
         if (matcher.matches(text)) {
-          debugLog('Blocking post:', text.substring(0, 100) + '...');
+          debugLog('>>> BLOCKING post with text:', text.substring(0, 100) + '...');
           hidePost(post);
           blockedPosts++;
         }
       });
     });
 
-    debugLog(`Scanned ${totalPosts} posts, blocked ${blockedPosts}`);
+    debugLog(`=== Scan complete: ${totalPosts} posts, ${blockedPosts} blocked ===`);
 
     // Filter comments
     filterComments();

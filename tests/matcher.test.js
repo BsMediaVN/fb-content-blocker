@@ -40,7 +40,8 @@ class KeywordMatcher {
     }
 
     if (plainKeywords.length > 0) {
-      this.compiledRegex = new RegExp(`\\b(?:${plainKeywords.join('|')})\\b`, 'giu');
+      // Unicode-aware word boundaries using lookahead/lookbehind
+      this.compiledRegex = new RegExp(`(?<![a-zA-Z0-9])(?:${plainKeywords.join('|')})(?![a-zA-Z0-9])`, 'giu');
     }
 
     if (this.whitelist.length > 0) {
@@ -48,7 +49,7 @@ class KeywordMatcher {
         const text = typeof item === 'string' ? item : item.text;
         return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       });
-      this.whitelistRegex = new RegExp(`\\b(?:${whitelistTexts.join('|')})\\b`, 'giu');
+      this.whitelistRegex = new RegExp(`(?<![a-zA-Z0-9])(?:${whitelistTexts.join('|')})(?![a-zA-Z0-9])`, 'giu');
     }
   }
 
