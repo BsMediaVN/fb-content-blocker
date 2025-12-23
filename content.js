@@ -4,14 +4,9 @@
  */
 
 // ============================================
-// LOAD CHECK - This should appear in console immediately
-// ============================================
-console.log('🚀 [FB Blocker] Content script LOADED at', new Date().toLocaleTimeString());
-
-// ============================================
 // Debug Mode (set to true for troubleshooting)
 // ============================================
-const DEBUG = true;
+const DEBUG = false;
 
 // ============================================
 // BUILT-IN SPONSORED/ADS DETECTION
@@ -308,28 +303,21 @@ function findPostContainer(element) {
   return element;
 }
 
-console.log('🔧 [FB Blocker] Calling init()...');
-init().catch(err => console.error('❌ [FB Blocker] Init failed:', err));
+init().catch(err => console.error('[FB Blocker] Init failed:', err));
 
 async function init() {
-  console.log('🔧 [FB Blocker] init() started');
   debugLog('=== FB Content Blocker initializing ===');
 
   // Run migration first
-  console.log('🔧 [FB Blocker] Running migration...');
   await Migration.migrateV1ToV2();
 
-  console.log('🔧 [FB Blocker] Loading settings...');
   await loadSettings();
-  console.log('🔧 [FB Blocker] Settings loaded:', { enabled, blockComments, keywordCount: matcher.count });
+  debugLog('Settings loaded:', { enabled, blockComments, keywordCount: matcher.count });
 
-  console.log('🔧 [FB Blocker] Setting up observer...');
   setupObserver();
-
-  console.log('🔧 [FB Blocker] Running initial filter...');
   filterContent();
 
-  console.log('✅ [FB Blocker] Initialization complete!');
+  debugLog('=== Initialization complete ===');
 
   // Listen for updates from popup
   chrome.runtime.onMessage.addListener((message) => {
@@ -476,19 +464,6 @@ function filterContent() {
     // Method 2: BUILT-IN ADS BLOCKING (always active)
     // Automatically blocks sponsored/suggested content without needing user keywords
     const allTextNodes = document.querySelectorAll('[dir="auto"], span, a');
-    debugLog('Method 2: Scanning', allTextNodes.length, 'text nodes');
-
-    // Debug: Find potential sponsored text
-    let sponsoredFound = [];
-    allTextNodes.forEach(node => {
-      const text = node.textContent?.trim() || '';
-      if (text && text.length < 50 && (text.includes('tài trợ') || text.includes('Sponsored') || text.includes('trợ'))) {
-        sponsoredFound.push(text);
-      }
-    });
-    if (sponsoredFound.length > 0) {
-      debugLog('🔍 Potential sponsored texts found:', sponsoredFound);
-    }
 
     allTextNodes.forEach(node => {
       const text = node.textContent?.trim() || '';
@@ -503,7 +478,6 @@ function filterContent() {
 
         // Match if text contains pattern (case-insensitive, diacritic-insensitive)
         if (normalizedText.includes(normalizedPattern) || text.includes(pattern)) {
-          debugLog('🎯 Pattern match:', { text, pattern, normalizedText, normalizedPattern });
           const postContainer = findPostContainer(node);
 
           if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
