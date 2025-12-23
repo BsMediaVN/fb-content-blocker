@@ -5,7 +5,7 @@
 }
 
 body {
-  width: 320px;
+  width: 350px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #f0f2f5;
 }
@@ -17,7 +17,7 @@ body {
 h1 {
   font-size: 18px;
   color: #1877f2;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
@@ -27,10 +27,37 @@ h2 {
   margin-bottom: 8px;
 }
 
+/* Stats Section */
+.stats-section {
+  display: flex;
+  justify-content: space-around;
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #65676b;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-item strong {
+  font-size: 20px;
+  color: #1877f2;
+}
+
+/* Input Group */
 .input-group {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 #keyword-input {
@@ -61,13 +88,98 @@ h2 {
   background: #166fe5;
 }
 
+/* Bulk Section */
+.bulk-section {
+  margin-bottom: 12px;
+}
+
+#bulk-container {
+  margin-top: 8px;
+}
+
+#bulk-input {
+  width: 100%;
+  height: 80px;
+  padding: 10px 12px;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 8px;
+}
+
+#bulk-input:focus {
+  border-color: #1877f2;
+}
+
+#bulk-add-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: #42b72a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#bulk-add-btn:hover {
+  background: #36a420;
+}
+
+/* Import/Export Section */
+.io-section {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.secondary-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: white;
+  color: #1877f2;
+  border: 1px solid #1877f2;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.secondary-btn:hover {
+  background: #e7f3ff;
+}
+
+#toggle-bulk-btn {
+  width: 100%;
+}
+
+/* Keywords Section */
 .keywords-section {
   background: white;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
-  max-height: 200px;
+  max-height: 180px;
   overflow-y: auto;
+}
+
+.keywords-section h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#keyword-count {
+  background: #1877f2;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 #keywords-list {
@@ -89,6 +201,9 @@ h2 {
 #keywords-list li span {
   font-size: 14px;
   color: #050505;
+  word-break: break-word;
+  flex: 1;
+  margin-right: 8px;
 }
 
 .delete-btn {
@@ -99,12 +214,14 @@ h2 {
   padding: 4px 8px;
   font-size: 12px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .delete-btn:hover {
   background: #d93025;
 }
 
+/* Toggle Section */
 .toggle-section {
   display: flex;
   align-items: center;
@@ -159,6 +276,11 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(24px);
+}
+
+/* Utility Classes */
+.hidden {
+  display: none !important;
 }
 
 .empty-message {

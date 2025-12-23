@@ -10,16 +10,47 @@
   <div class="container">
     <h1>FB Content Blocker</h1>
 
+    <!-- Stats Section -->
+    <div class="stats-section">
+      <div class="stat-item">
+        <span class="stat-label">Hôm nay:</span>
+        <strong id="today-count">0</strong>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Tổng cộng:</span>
+        <strong id="total-count">0</strong>
+      </div>
+    </div>
+
+    <!-- Single keyword input -->
     <div class="input-group">
       <input type="text" id="keyword-input" placeholder="Nhập từ khóa cần chặn...">
       <button id="add-btn">Thêm</button>
     </div>
 
+    <!-- Bulk add section -->
+    <div class="bulk-section">
+      <button id="toggle-bulk-btn" class="secondary-btn">Thêm nhiều từ khóa</button>
+      <div id="bulk-container" class="hidden">
+        <textarea id="bulk-input" placeholder="Mỗi từ khóa một dòng..."></textarea>
+        <button id="bulk-add-btn">Thêm tất cả</button>
+      </div>
+    </div>
+
+    <!-- Import/Export Section -->
+    <div class="io-section">
+      <button id="export-btn" class="secondary-btn">Xuất JSON</button>
+      <button id="import-btn" class="secondary-btn">Nhập JSON</button>
+      <input type="file" id="import-file" accept=".json" hidden>
+    </div>
+
+    <!-- Keywords list -->
     <div class="keywords-section">
-      <h2>Từ khóa đang chặn:</h2>
+      <h2>Từ khóa đang chặn: <span id="keyword-count">0</span></h2>
       <ul id="keywords-list"></ul>
     </div>
 
+    <!-- Toggle Section -->
     <div class="toggle-section">
       <label class="toggle">
         <input type="checkbox" id="enabled-toggle" checked>
