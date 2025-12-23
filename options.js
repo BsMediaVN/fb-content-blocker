@@ -5,16 +5,41 @@
 
 document.addEventListener('DOMContentLoaded', init);
 
-// Category labels and valid values
-const CATEGORY_LABELS = {
-  default: 'Mặc định',
-  spam: 'Spam',
-  ads: 'Quảng cáo',
-  politics: 'Chính trị',
-  other: 'Khác'
-};
+// i18n helper function
+function getMessage(key, substitutions) {
+  return chrome.i18n.getMessage(key, substitutions) || key;
+}
 
-const VALID_CATEGORIES = Object.keys(CATEGORY_LABELS);
+// Apply i18n to all elements with data-i18n attributes
+function applyI18n() {
+  // Text content
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const msg = getMessage(key);
+    if (msg) el.textContent = msg;
+  });
+
+  // Placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const msg = getMessage(key);
+    if (msg) el.placeholder = msg;
+  });
+}
+
+// Category labels for display - using i18n
+function getCategoryLabel(category) {
+  const labels = {
+    default: getMessage('categoryDefault'),
+    spam: getMessage('categorySpam'),
+    ads: getMessage('categoryAds'),
+    politics: getMessage('categoryPolitics'),
+    other: getMessage('categoryOther')
+  };
+  return labels[category] || category;
+}
+
+const VALID_CATEGORIES = ['default', 'spam', 'ads', 'politics', 'other'];
 
 // Current filter state
 let currentSearch = '';
@@ -22,6 +47,7 @@ let currentCategory = '';
 let allKeywords = [];
 
 async function init() {
+  applyI18n();
   await loadStats();
   await loadSettings();
   await loadKeywords();
@@ -95,17 +121,17 @@ async function loadStats() {
 }
 
 async function resetStats() {
-  if (!confirm('Bạn có chắc muốn đặt lại thống kê?')) return;
+  if (!confirm(getMessage('optionsResetConfirm'))) return;
 
   try {
     await chrome.storage.local.set({
       stats: { today: 0, total: 0, lastReset: null }
     });
     await loadStats();
-    alert('Đã đặt lại thống kê!');
+    alert(getMessage('optionsResetSuccess'));
   } catch (error) {
     console.error('[FB Blocker] resetStats error:', error);
-    alert('Lỗi khi đặt lại thống kê!');
+    alert(getMessage('optionsResetError'));
   }
 }
 
@@ -180,7 +206,7 @@ function renderKeywords() {
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr class="empty-row">
-        <td colspan="4">${allKeywords.length === 0 ? 'Chưa có từ khóa nào' : 'Không tìm thấy từ khóa phù hợp'}</td>
+        <td colspan="4">${allKeywords.length === 0 ? getMessage('emptyKeywords') : getMessage('noMatch')}</td>
       </tr>
     `;
     return;
@@ -191,7 +217,7 @@ function renderKeywords() {
     const id = typeof kw === 'object' ? kw.id : index;
     const category = typeof kw === 'object' ? (kw.category || 'default') : 'default';
     const isRegex = typeof kw === 'object' && kw.isRegex;
-    const categoryLabel = CATEGORY_LABELS[category] || category;
+    const categoryLabel = getCategoryLabel(category);
 
     return `
       <tr>
@@ -199,7 +225,7 @@ function renderKeywords() {
         <td><span class="category-badge ${category}">${categoryLabel}</span></td>
         <td>${isRegex ? '<span class="regex-badge">REGEX</span>' : '-'}</td>
         <td>
-          <button class="btn small danger" onclick="deleteKeyword('${id}', ${index})">Xóa</button>
+          <button class="btn small danger" onclick="deleteKeyword('${id}', ${index})">${getMessage('btnDelete')}</button>
         </td>
       </tr>
     `;
@@ -225,14 +251,14 @@ async function addKeyword() {
     if (typeof RegexValidator !== 'undefined') {
       const result = RegexValidator.validate(text);
       if (!result.valid) {
-        alert(`Regex không hợp lệ: ${result.error}`);
+        alert(getMessage('alertInvalidRegex', [result.error]));
         return;
       }
     } else {
       try {
         new RegExp(text);
       } catch (e) {
-        alert(`Regex không hợp lệ: ${e.message}`);
+        alert(getMessage('alertInvalidRegex', [e.message]));
         return;
       }
     }
@@ -247,7 +273,7 @@ async function addKeyword() {
     );
 
     if (exists) {
-      alert('Từ khóa này đã tồn tại!');
+      alert(getMessage('alertDuplicate'));
       return;
     }
 
@@ -267,7 +293,7 @@ async function addKeyword() {
     notifyContentScript();
   } catch (error) {
     console.error('[FB Blocker] addKeyword error:', error);
-    alert('Lỗi khi thêm từ khóa!');
+    alert(getMessage('alertAddError'));
   }
 }
 
@@ -309,7 +335,7 @@ function renderWhitelist(whitelist) {
   document.getElementById('whitelist-count').textContent = whitelist.length;
 
   if (whitelist.length === 0) {
-    container.innerHTML = '<span style="color: #65676b; font-size: 13px;">Chưa có từ khóa whitelist nào</span>';
+    container.innerHTML = `<span style="color: #65676b; font-size: 13px;">${getMessage('emptyWhitelist')}</span>`;
     return;
   }
 
@@ -340,7 +366,7 @@ async function addWhitelistItem() {
     );
 
     if (exists) {
-      alert('Từ khóa whitelist này đã tồn tại!');
+      alert(getMessage('alertWhitelistDuplicate'));
       return;
     }
 
@@ -355,7 +381,7 @@ async function addWhitelistItem() {
     notifyContentScript();
   } catch (error) {
     console.error('[FB Blocker] addWhitelistItem error:', error);
-    alert('Lỗi khi thêm whitelist!');
+    alert(getMessage('alertWhitelistError'));
   }
 }
 
@@ -511,11 +537,11 @@ async function handleImport(event) {
 
     await loadStats();
     notifyContentScript();
-    alert('Đã nhập dữ liệu thành công!');
+    alert(getMessage('alertImportSuccess'));
     event.target.value = '';
   } catch (error) {
     console.error('[FB Blocker] handleImport error:', error);
-    alert('Lỗi khi nhập dữ liệu! Vui lòng kiểm tra file JSON.');
+    alert(getMessage('alertImportError'));
     event.target.value = '';
   }
 }

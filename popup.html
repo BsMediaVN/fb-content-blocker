@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,60 +13,60 @@
     <!-- Stats Section -->
     <div class="stats-section">
       <div class="stat-item">
-        <span class="stat-label">Hôm nay:</span>
+        <span class="stat-label" data-i18n="statsToday">Today:</span>
         <strong id="today-count">0</strong>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Tổng cộng:</span>
+        <span class="stat-label" data-i18n="statsTotal">Total:</span>
         <strong id="total-count">0</strong>
       </div>
     </div>
 
     <!-- Single keyword input -->
     <div class="input-group">
-      <input type="text" id="keyword-input" placeholder="Nhập từ khóa cần chặn...">
+      <input type="text" id="keyword-input" data-i18n-placeholder="inputPlaceholder" placeholder="Enter keyword to block...">
       <select id="category-input">
-        <option value="default">Mặc định</option>
-        <option value="spam">Spam</option>
-        <option value="ads">Quảng cáo</option>
-        <option value="politics">Chính trị</option>
-        <option value="other">Khác</option>
+        <option value="default" data-i18n="categoryDefault">Default</option>
+        <option value="spam" data-i18n="categorySpam">Spam</option>
+        <option value="ads" data-i18n="categoryAds">Ads</option>
+        <option value="politics" data-i18n="categoryPolitics">Politics</option>
+        <option value="other" data-i18n="categoryOther">Other</option>
       </select>
-      <button id="add-btn">Thêm</button>
+      <button id="add-btn" data-i18n="btnAdd">Add</button>
     </div>
 
     <!-- Bulk add section -->
     <div class="bulk-section">
-      <button id="toggle-bulk-btn" class="secondary-btn">Thêm nhiều từ khóa</button>
+      <button id="toggle-bulk-btn" class="secondary-btn" data-i18n="btnBulkAdd">Add multiple keywords</button>
       <div id="bulk-container" class="hidden">
-        <textarea id="bulk-input" placeholder="Mỗi từ khóa một dòng..."></textarea>
-        <button id="bulk-add-btn">Thêm tất cả</button>
+        <textarea id="bulk-input" data-i18n-placeholder="bulkPlaceholder" placeholder="One keyword per line..."></textarea>
+        <button id="bulk-add-btn" data-i18n="btnAddAll">Add all</button>
       </div>
     </div>
 
     <!-- Import/Export Section -->
     <div class="io-section">
-      <button id="export-btn" class="secondary-btn">Xuất JSON</button>
-      <button id="import-btn" class="secondary-btn">Nhập JSON</button>
+      <button id="export-btn" class="secondary-btn" data-i18n="btnExport">Export JSON</button>
+      <button id="import-btn" class="secondary-btn" data-i18n="btnImport">Import JSON</button>
       <input type="file" id="import-file" accept=".json" hidden>
     </div>
 
     <!-- Search and Filter -->
     <div class="filter-section">
-      <input type="text" id="search-input" placeholder="Tìm kiếm từ khóa...">
+      <input type="text" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="Search keywords...">
       <select id="category-filter">
-        <option value="">Tất cả</option>
-        <option value="default">Mặc định</option>
-        <option value="spam">Spam</option>
-        <option value="ads">Quảng cáo</option>
-        <option value="politics">Chính trị</option>
-        <option value="other">Khác</option>
+        <option value="" data-i18n="filterAll">All</option>
+        <option value="default" data-i18n="categoryDefault">Default</option>
+        <option value="spam" data-i18n="categorySpam">Spam</option>
+        <option value="ads" data-i18n="categoryAds">Ads</option>
+        <option value="politics" data-i18n="categoryPolitics">Politics</option>
+        <option value="other" data-i18n="categoryOther">Other</option>
       </select>
     </div>
 
     <!-- Keywords list -->
     <div class="keywords-section">
-      <h2>Từ khóa đang chặn: <span id="keyword-count">0</span></h2>
+      <h2><span data-i18n="keywordsTitle">Blocked keywords:</span> <span id="keyword-count">0</span></h2>
       <ul id="keywords-list"></ul>
     </div>
 
@@ -76,7 +76,7 @@
         <input type="checkbox" id="enabled-toggle" checked>
         <span class="slider"></span>
       </label>
-      <span>Bật/Tắt extension</span>
+      <span data-i18n="toggleLabel">Enable/Disable extension</span>
     </div>
   </div>
 

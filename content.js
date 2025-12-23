@@ -460,12 +460,12 @@ async function hideComment(comment) {
 
   const textSpan = document.createElement('span');
   textSpan.className = 'fb-blocker-comment-text';
-  textSpan.textContent = '[Bình luận đã ẩn]';
+  textSpan.textContent = chrome.i18n.getMessage('commentHidden') || '[Comment hidden]';
   placeholder.appendChild(textSpan);
 
   const showBtn = document.createElement('button');
   showBtn.className = 'fb-blocker-comment-show';
-  showBtn.textContent = 'Hiện';
+  showBtn.textContent = chrome.i18n.getMessage('placeholderShow') || 'Show';
   showBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     comment.style.display = comment.dataset.originalDisplay || '';
@@ -490,12 +490,12 @@ async function hidePost(post) {
   placeholder.className = 'fb-blocker-placeholder';
 
   const textSpan = document.createElement('span');
-  textSpan.textContent = 'Nội dung đã bị ẩn bởi FB Content Blocker';
+  textSpan.textContent = chrome.i18n.getMessage('placeholderHidden') || 'Content hidden by FB Content Blocker';
   placeholder.appendChild(textSpan);
 
   const showBtn = document.createElement('button');
   showBtn.className = 'fb-blocker-show-btn';
-  showBtn.textContent = 'Hiện';
+  showBtn.textContent = chrome.i18n.getMessage('placeholderShow') || 'Show';
   showBtn.addEventListener('click', () => {
     post.style.display = post.dataset.originalDisplay || '';
     post.dataset.fbBlocked = 'shown';

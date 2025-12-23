@@ -1,0 +1,342 @@
+{
+  "extName": {
+    "message": "FB Content Blocker",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Chặn hiển thị nội dung trên Facebook theo từ khóa",
+    "description": "Extension description"
+  },
+  "statsToday": {
+    "message": "Hôm nay:",
+    "description": "Today stats label"
+  },
+  "statsTotal": {
+    "message": "Tổng cộng:",
+    "description": "Total stats label"
+  },
+  "inputPlaceholder": {
+    "message": "Nhập từ khóa cần chặn...",
+    "description": "Keyword input placeholder"
+  },
+  "categoryDefault": {
+    "message": "Mặc định",
+    "description": "Default category"
+  },
+  "categorySpam": {
+    "message": "Spam",
+    "description": "Spam category"
+  },
+  "categoryAds": {
+    "message": "Quảng cáo",
+    "description": "Ads category"
+  },
+  "categoryPolitics": {
+    "message": "Chính trị",
+    "description": "Politics category"
+  },
+  "categoryOther": {
+    "message": "Khác",
+    "description": "Other category"
+  },
+  "btnAdd": {
+    "message": "Thêm",
+    "description": "Add button"
+  },
+  "btnBulkAdd": {
+    "message": "Thêm nhiều từ khóa",
+    "description": "Bulk add button"
+  },
+  "bulkPlaceholder": {
+    "message": "Mỗi từ khóa một dòng...",
+    "description": "Bulk textarea placeholder"
+  },
+  "btnAddAll": {
+    "message": "Thêm tất cả",
+    "description": "Add all button"
+  },
+  "btnExport": {
+    "message": "Xuất JSON",
+    "description": "Export button"
+  },
+  "btnImport": {
+    "message": "Nhập JSON",
+    "description": "Import button"
+  },
+  "searchPlaceholder": {
+    "message": "Tìm kiếm từ khóa...",
+    "description": "Search placeholder"
+  },
+  "filterAll": {
+    "message": "Tất cả",
+    "description": "All filter option"
+  },
+  "keywordsTitle": {
+    "message": "Từ khóa đang chặn:",
+    "description": "Keywords section title"
+  },
+  "toggleLabel": {
+    "message": "Bật/Tắt extension",
+    "description": "Toggle label"
+  },
+  "btnDelete": {
+    "message": "Xóa",
+    "description": "Delete button"
+  },
+  "emptyKeywords": {
+    "message": "Chưa có từ khóa nào",
+    "description": "Empty keywords message"
+  },
+  "noMatch": {
+    "message": "Không tìm thấy từ khóa phù hợp",
+    "description": "No matching keywords"
+  },
+  "alertDuplicate": {
+    "message": "Từ khóa này đã tồn tại!",
+    "description": "Duplicate keyword alert"
+  },
+  "alertAddError": {
+    "message": "Lỗi khi thêm từ khóa!",
+    "description": "Add error alert"
+  },
+  "alertBulkAdded": {
+    "message": "Đã thêm $COUNT$ từ khóa.",
+    "description": "Bulk added message",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "alertDuplicatesSkipped": {
+    "message": "Bỏ qua $COUNT$ từ trùng lặp.",
+    "description": "Duplicates skipped message",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "alertFileTooLarge": {
+    "message": "File quá lớn! Giới hạn 10MB.",
+    "description": "File too large alert"
+  },
+  "alertTooManyKeywords": {
+    "message": "Quá nhiều từ khóa! Giới hạn $LIMIT$ từ.",
+    "description": "Too many keywords alert",
+    "placeholders": {
+      "limit": {
+        "content": "$1",
+        "example": "5000"
+      }
+    }
+  },
+  "alertTotalExceedsLimit": {
+    "message": "Tổng từ khóa vượt quá giới hạn $LIMIT$! Hiện có $CURRENT$ từ.",
+    "description": "Total exceeds limit alert",
+    "placeholders": {
+      "limit": {
+        "content": "$1",
+        "example": "5000"
+      },
+      "current": {
+        "content": "$2",
+        "example": "4500"
+      }
+    }
+  },
+  "alertImportError": {
+    "message": "Lỗi khi nhập dữ liệu! Vui lòng kiểm tra file JSON.",
+    "description": "Import error alert"
+  },
+  "alertExportError": {
+    "message": "Lỗi khi xuất dữ liệu!",
+    "description": "Export error alert"
+  },
+  "alertImported": {
+    "message": "Đã nhập $COUNT$ từ khóa.",
+    "description": "Imported message",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "10"
+      }
+    }
+  },
+  "placeholderHidden": {
+    "message": "Nội dung đã bị ẩn bởi FB Content Blocker",
+    "description": "Post hidden placeholder"
+  },
+  "placeholderShow": {
+    "message": "Hiện",
+    "description": "Show button"
+  },
+  "commentHidden": {
+    "message": "[Bình luận đã ẩn]",
+    "description": "Comment hidden text"
+  },
+  "optionsTitle": {
+    "message": "Cài đặt FB Content Blocker",
+    "description": "Options page title"
+  },
+  "optionsStatsTitle": {
+    "message": "Thống kê",
+    "description": "Stats section title"
+  },
+  "optionsKeywordsBlocked": {
+    "message": "Từ khóa",
+    "description": "Keywords blocked label"
+  },
+  "optionsWhitelistCount": {
+    "message": "Whitelist",
+    "description": "Whitelist count label"
+  },
+  "optionsSettingsTitle": {
+    "message": "Cài đặt",
+    "description": "Settings section title"
+  },
+  "optionsEnabled": {
+    "message": "Bật extension",
+    "description": "Enable extension toggle"
+  },
+  "optionsBlockComments": {
+    "message": "Chặn bình luận",
+    "description": "Block comments toggle"
+  },
+  "optionsCaseSensitive": {
+    "message": "Phân biệt chữ hoa/thường",
+    "description": "Case sensitive toggle"
+  },
+  "optionsKeywordsTitle": {
+    "message": "Quản lý từ khóa",
+    "description": "Keywords management title"
+  },
+  "optionsIsRegex": {
+    "message": "Regex",
+    "description": "Is regex checkbox"
+  },
+  "optionsKeywordHeader": {
+    "message": "Từ khóa",
+    "description": "Keyword table header"
+  },
+  "optionsCategoryHeader": {
+    "message": "Danh mục",
+    "description": "Category table header"
+  },
+  "optionsTypeHeader": {
+    "message": "Loại",
+    "description": "Type table header"
+  },
+  "optionsActionHeader": {
+    "message": "Hành động",
+    "description": "Action table header"
+  },
+  "optionsWhitelistTitle": {
+    "message": "Whitelist (không chặn)",
+    "description": "Whitelist section title"
+  },
+  "optionsWhitelistPlaceholder": {
+    "message": "Thêm từ khóa whitelist...",
+    "description": "Whitelist input placeholder"
+  },
+  "optionsBackupTitle": {
+    "message": "Sao lưu & Khôi phục",
+    "description": "Backup section title"
+  },
+  "optionsResetStats": {
+    "message": "Đặt lại thống kê",
+    "description": "Reset stats button"
+  },
+  "optionsResetConfirm": {
+    "message": "Bạn có chắc muốn đặt lại thống kê?",
+    "description": "Reset confirm message"
+  },
+  "optionsResetSuccess": {
+    "message": "Đã đặt lại thống kê!",
+    "description": "Reset success message"
+  },
+  "optionsResetError": {
+    "message": "Lỗi khi đặt lại thống kê!",
+    "description": "Reset error message"
+  },
+  "alertWhitelistDuplicate": {
+    "message": "Từ khóa whitelist này đã tồn tại!",
+    "description": "Whitelist duplicate alert"
+  },
+  "alertWhitelistError": {
+    "message": "Lỗi khi thêm whitelist!",
+    "description": "Whitelist add error"
+  },
+  "alertInvalidRegex": {
+    "message": "Regex không hợp lệ: $ERROR$",
+    "description": "Invalid regex alert",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Unexpected end of input"
+      }
+    }
+  },
+  "alertImportSuccess": {
+    "message": "Đã nhập dữ liệu thành công!",
+    "description": "Import success message"
+  },
+  "emptyWhitelist": {
+    "message": "Chưa có từ khóa whitelist nào",
+    "description": "Empty whitelist message"
+  },
+  "optionsEnabledDesc": {
+    "message": "Bật/tắt chức năng chặn nội dung",
+    "description": "Enable extension description"
+  },
+  "optionsBlockCommentsDesc": {
+    "message": "Ẩn bình luận chứa từ khóa",
+    "description": "Block comments description"
+  },
+  "optionsCaseSensitiveDesc": {
+    "message": "Mặc định: không phân biệt",
+    "description": "Case sensitive description"
+  },
+  "optionsWhitelistDesc": {
+    "message": "Các từ khóa này sẽ không bị chặn dù match với blacklist",
+    "description": "Whitelist description"
+  },
+  "optionsRegexHelp": {
+    "message": "Hướng dẫn Regex",
+    "description": "Regex help title"
+  },
+  "regexHelpDot": {
+    "message": "Khớp bất kỳ ký tự nào",
+    "description": "Regex dot help"
+  },
+  "regexHelpStar": {
+    "message": "Khớp 0 hoặc nhiều lần",
+    "description": "Regex star help"
+  },
+  "regexHelpPlus": {
+    "message": "Khớp 1 hoặc nhiều lần",
+    "description": "Regex plus help"
+  },
+  "regexHelpQuestion": {
+    "message": "Khớp 0 hoặc 1 lần",
+    "description": "Regex question help"
+  },
+  "regexHelpBracket": {
+    "message": "Khớp a, b hoặc c",
+    "description": "Regex bracket help"
+  },
+  "regexHelpPipe": {
+    "message": "Khớp a hoặc b",
+    "description": "Regex pipe help"
+  },
+  "regexHelpCaret": {
+    "message": "Bắt đầu chuỗi",
+    "description": "Regex caret help"
+  },
+  "regexHelpDollar": {
+    "message": "Kết thúc chuỗi",
+    "description": "Regex dollar help"
+  }
+}

@@ -1,0 +1,342 @@
+{
+  "extName": {
+    "message": "FB Content Blocker",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Block Facebook content by keywords",
+    "description": "Extension description"
+  },
+  "statsToday": {
+    "message": "Today:",
+    "description": "Today stats label"
+  },
+  "statsTotal": {
+    "message": "Total:",
+    "description": "Total stats label"
+  },
+  "inputPlaceholder": {
+    "message": "Enter keyword to block...",
+    "description": "Keyword input placeholder"
+  },
+  "categoryDefault": {
+    "message": "Default",
+    "description": "Default category"
+  },
+  "categorySpam": {
+    "message": "Spam",
+    "description": "Spam category"
+  },
+  "categoryAds": {
+    "message": "Ads",
+    "description": "Ads category"
+  },
+  "categoryPolitics": {
+    "message": "Politics",
+    "description": "Politics category"
+  },
+  "categoryOther": {
+    "message": "Other",
+    "description": "Other category"
+  },
+  "btnAdd": {
+    "message": "Add",
+    "description": "Add button"
+  },
+  "btnBulkAdd": {
+    "message": "Add multiple keywords",
+    "description": "Bulk add button"
+  },
+  "bulkPlaceholder": {
+    "message": "One keyword per line...",
+    "description": "Bulk textarea placeholder"
+  },
+  "btnAddAll": {
+    "message": "Add all",
+    "description": "Add all button"
+  },
+  "btnExport": {
+    "message": "Export JSON",
+    "description": "Export button"
+  },
+  "btnImport": {
+    "message": "Import JSON",
+    "description": "Import button"
+  },
+  "searchPlaceholder": {
+    "message": "Search keywords...",
+    "description": "Search placeholder"
+  },
+  "filterAll": {
+    "message": "All",
+    "description": "All filter option"
+  },
+  "keywordsTitle": {
+    "message": "Blocked keywords:",
+    "description": "Keywords section title"
+  },
+  "toggleLabel": {
+    "message": "Enable/Disable extension",
+    "description": "Toggle label"
+  },
+  "btnDelete": {
+    "message": "Delete",
+    "description": "Delete button"
+  },
+  "emptyKeywords": {
+    "message": "No keywords yet",
+    "description": "Empty keywords message"
+  },
+  "noMatch": {
+    "message": "No matching keywords found",
+    "description": "No matching keywords"
+  },
+  "alertDuplicate": {
+    "message": "This keyword already exists!",
+    "description": "Duplicate keyword alert"
+  },
+  "alertAddError": {
+    "message": "Error adding keyword!",
+    "description": "Add error alert"
+  },
+  "alertBulkAdded": {
+    "message": "Added $COUNT$ keywords.",
+    "description": "Bulk added message",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "alertDuplicatesSkipped": {
+    "message": "Skipped $COUNT$ duplicates.",
+    "description": "Duplicates skipped message",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "alertFileTooLarge": {
+    "message": "File too large! Limit is 10MB.",
+    "description": "File too large alert"
+  },
+  "alertTooManyKeywords": {
+    "message": "Too many keywords! Limit is $LIMIT$.",
+    "description": "Too many keywords alert",
+    "placeholders": {
+      "limit": {
+        "content": "$1",
+        "example": "5000"
+      }
+    }
+  },
+  "alertTotalExceedsLimit": {
+    "message": "Total keywords exceed limit $LIMIT$! Currently have $CURRENT$.",
+    "description": "Total exceeds limit alert",
+    "placeholders": {
+      "limit": {
+        "content": "$1",
+        "example": "5000"
+      },
+      "current": {
+        "content": "$2",
+        "example": "4500"
+      }
+    }
+  },
+  "alertImportError": {
+    "message": "Error importing data! Please check the JSON file.",
+    "description": "Import error alert"
+  },
+  "alertExportError": {
+    "message": "Error exporting data!",
+    "description": "Export error alert"
+  },
+  "alertImported": {
+    "message": "Imported $COUNT$ keywords.",
+    "description": "Imported message",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "10"
+      }
+    }
+  },
+  "placeholderHidden": {
+    "message": "Content hidden by FB Content Blocker",
+    "description": "Post hidden placeholder"
+  },
+  "placeholderShow": {
+    "message": "Show",
+    "description": "Show button"
+  },
+  "commentHidden": {
+    "message": "[Comment hidden]",
+    "description": "Comment hidden text"
+  },
+  "optionsTitle": {
+    "message": "FB Content Blocker Settings",
+    "description": "Options page title"
+  },
+  "optionsStatsTitle": {
+    "message": "Statistics",
+    "description": "Stats section title"
+  },
+  "optionsKeywordsBlocked": {
+    "message": "Keywords",
+    "description": "Keywords blocked label"
+  },
+  "optionsWhitelistCount": {
+    "message": "Whitelist",
+    "description": "Whitelist count label"
+  },
+  "optionsSettingsTitle": {
+    "message": "Settings",
+    "description": "Settings section title"
+  },
+  "optionsEnabled": {
+    "message": "Enable extension",
+    "description": "Enable extension toggle"
+  },
+  "optionsBlockComments": {
+    "message": "Block comments",
+    "description": "Block comments toggle"
+  },
+  "optionsCaseSensitive": {
+    "message": "Case sensitive",
+    "description": "Case sensitive toggle"
+  },
+  "optionsKeywordsTitle": {
+    "message": "Manage Keywords",
+    "description": "Keywords management title"
+  },
+  "optionsIsRegex": {
+    "message": "Regex",
+    "description": "Is regex checkbox"
+  },
+  "optionsKeywordHeader": {
+    "message": "Keyword",
+    "description": "Keyword table header"
+  },
+  "optionsCategoryHeader": {
+    "message": "Category",
+    "description": "Category table header"
+  },
+  "optionsTypeHeader": {
+    "message": "Type",
+    "description": "Type table header"
+  },
+  "optionsActionHeader": {
+    "message": "Action",
+    "description": "Action table header"
+  },
+  "optionsWhitelistTitle": {
+    "message": "Whitelist (won't block)",
+    "description": "Whitelist section title"
+  },
+  "optionsWhitelistPlaceholder": {
+    "message": "Add whitelist keyword...",
+    "description": "Whitelist input placeholder"
+  },
+  "optionsBackupTitle": {
+    "message": "Backup & Restore",
+    "description": "Backup section title"
+  },
+  "optionsResetStats": {
+    "message": "Reset statistics",
+    "description": "Reset stats button"
+  },
+  "optionsResetConfirm": {
+    "message": "Are you sure you want to reset statistics?",
+    "description": "Reset confirm message"
+  },
+  "optionsResetSuccess": {
+    "message": "Statistics reset!",
+    "description": "Reset success message"
+  },
+  "optionsResetError": {
+    "message": "Error resetting statistics!",
+    "description": "Reset error message"
+  },
+  "alertWhitelistDuplicate": {
+    "message": "This whitelist keyword already exists!",
+    "description": "Whitelist duplicate alert"
+  },
+  "alertWhitelistError": {
+    "message": "Error adding to whitelist!",
+    "description": "Whitelist add error"
+  },
+  "alertInvalidRegex": {
+    "message": "Invalid regex: $ERROR$",
+    "description": "Invalid regex alert",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Unexpected end of input"
+      }
+    }
+  },
+  "alertImportSuccess": {
+    "message": "Data imported successfully!",
+    "description": "Import success message"
+  },
+  "emptyWhitelist": {
+    "message": "No whitelist keywords yet",
+    "description": "Empty whitelist message"
+  },
+  "optionsEnabledDesc": {
+    "message": "Enable/disable content blocking",
+    "description": "Enable extension description"
+  },
+  "optionsBlockCommentsDesc": {
+    "message": "Hide comments containing keywords",
+    "description": "Block comments description"
+  },
+  "optionsCaseSensitiveDesc": {
+    "message": "Default: case insensitive",
+    "description": "Case sensitive description"
+  },
+  "optionsWhitelistDesc": {
+    "message": "These keywords won't be blocked even if they match blacklist",
+    "description": "Whitelist description"
+  },
+  "optionsRegexHelp": {
+    "message": "Regex Help",
+    "description": "Regex help title"
+  },
+  "regexHelpDot": {
+    "message": "Match any character",
+    "description": "Regex dot help"
+  },
+  "regexHelpStar": {
+    "message": "Match 0 or more times",
+    "description": "Regex star help"
+  },
+  "regexHelpPlus": {
+    "message": "Match 1 or more times",
+    "description": "Regex plus help"
+  },
+  "regexHelpQuestion": {
+    "message": "Match 0 or 1 time",
+    "description": "Regex question help"
+  },
+  "regexHelpBracket": {
+    "message": "Match a, b or c",
+    "description": "Regex bracket help"
+  },
+  "regexHelpPipe": {
+    "message": "Match a or b",
+    "description": "Regex pipe help"
+  },
+  "regexHelpCaret": {
+    "message": "Start of string",
+    "description": "Regex caret help"
+  },
+  "regexHelpDollar": {
+    "message": "End of string",
+    "description": "Regex dollar help"
+  }
+}

@@ -1,48 +1,48 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FB Content Blocker - Cài đặt</title>
+  <title>FB Content Blocker - Settings</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
       <h1>FB Content Blocker</h1>
-      <p class="subtitle">Cài đặt nâng cao</p>
+      <p class="subtitle" data-i18n="optionsTitle">Settings</p>
     </header>
 
     <!-- Stats Overview -->
     <section class="card stats-card">
-      <h2>Thống kê</h2>
+      <h2 data-i18n="optionsStatsTitle">Statistics</h2>
       <div class="stats-grid">
         <div class="stat-box">
           <span class="stat-value" id="today-count">0</span>
-          <span class="stat-label">Hôm nay</span>
+          <span class="stat-label" data-i18n="statsToday">Today</span>
         </div>
         <div class="stat-box">
           <span class="stat-value" id="total-count">0</span>
-          <span class="stat-label">Tổng cộng</span>
+          <span class="stat-label" data-i18n="statsTotal">Total</span>
         </div>
         <div class="stat-box">
           <span class="stat-value" id="keyword-count">0</span>
-          <span class="stat-label">Từ khóa</span>
+          <span class="stat-label" data-i18n="optionsKeywordsBlocked">Keywords</span>
         </div>
         <div class="stat-box">
           <span class="stat-value" id="whitelist-count">0</span>
-          <span class="stat-label">Whitelist</span>
+          <span class="stat-label" data-i18n="optionsWhitelistCount">Whitelist</span>
         </div>
       </div>
     </section>
 
     <!-- Settings -->
     <section class="card">
-      <h2>Cài đặt chung</h2>
+      <h2 data-i18n="optionsSettingsTitle">Settings</h2>
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-label">Bật extension</span>
-          <span class="setting-desc">Bật/tắt chức năng chặn nội dung</span>
+          <span class="setting-label" data-i18n="optionsEnabled">Enable extension</span>
+          <span class="setting-desc" data-i18n="optionsEnabledDesc">Enable/disable content blocking</span>
         </div>
         <label class="toggle">
           <input type="checkbox" id="enabled-toggle" checked>
@@ -51,8 +51,8 @@
       </div>
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-label">Chặn bình luận</span>
-          <span class="setting-desc">Ẩn bình luận chứa từ khóa</span>
+          <span class="setting-label" data-i18n="optionsBlockComments">Block comments</span>
+          <span class="setting-desc" data-i18n="optionsBlockCommentsDesc">Hide comments containing keywords</span>
         </div>
         <label class="toggle">
           <input type="checkbox" id="block-comments-toggle" checked>
@@ -61,8 +61,8 @@
       </div>
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-label">Phân biệt hoa/thường</span>
-          <span class="setting-desc">Mặc định: không phân biệt</span>
+          <span class="setting-label" data-i18n="optionsCaseSensitive">Case sensitive</span>
+          <span class="setting-desc" data-i18n="optionsCaseSensitiveDesc">Default: case insensitive</span>
         </div>
         <label class="toggle">
           <input type="checkbox" id="case-sensitive-toggle">
@@ -73,35 +73,35 @@
 
     <!-- Keywords Management -->
     <section class="card">
-      <h2>Quản lý từ khóa</h2>
+      <h2 data-i18n="optionsKeywordsTitle">Manage Keywords</h2>
 
       <!-- Add keyword form -->
       <div class="add-keyword-form">
-        <input type="text" id="keyword-input" placeholder="Nhập từ khóa...">
+        <input type="text" id="keyword-input" data-i18n-placeholder="inputPlaceholder" placeholder="Enter keyword...">
         <select id="category-input">
-          <option value="default">Mặc định</option>
-          <option value="spam">Spam</option>
-          <option value="ads">Quảng cáo</option>
-          <option value="politics">Chính trị</option>
-          <option value="other">Khác</option>
+          <option value="default" data-i18n="categoryDefault">Default</option>
+          <option value="spam" data-i18n="categorySpam">Spam</option>
+          <option value="ads" data-i18n="categoryAds">Ads</option>
+          <option value="politics" data-i18n="categoryPolitics">Politics</option>
+          <option value="other" data-i18n="categoryOther">Other</option>
         </select>
         <label class="checkbox-label">
           <input type="checkbox" id="is-regex-input">
-          <span>Regex</span>
+          <span data-i18n="optionsIsRegex">Regex</span>
         </label>
-        <button id="add-btn" class="btn primary">Thêm</button>
+        <button id="add-btn" class="btn primary" data-i18n="btnAdd">Add</button>
       </div>
 
       <!-- Search and filter -->
       <div class="filter-row">
-        <input type="text" id="search-input" placeholder="Tìm kiếm từ khóa...">
+        <input type="text" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="Search keywords...">
         <select id="category-filter">
-          <option value="">Tất cả</option>
-          <option value="default">Mặc định</option>
-          <option value="spam">Spam</option>
-          <option value="ads">Quảng cáo</option>
-          <option value="politics">Chính trị</option>
-          <option value="other">Khác</option>
+          <option value="" data-i18n="filterAll">All</option>
+          <option value="default" data-i18n="categoryDefault">Default</option>
+          <option value="spam" data-i18n="categorySpam">Spam</option>
+          <option value="ads" data-i18n="categoryAds">Ads</option>
+          <option value="politics" data-i18n="categoryPolitics">Politics</option>
+          <option value="other" data-i18n="categoryOther">Other</option>
         </select>
       </div>
 
@@ -110,10 +110,10 @@
         <table id="keywords-table">
           <thead>
             <tr>
-              <th>Từ khóa</th>
-              <th>Danh mục</th>
-              <th>Regex</th>
-              <th>Hành động</th>
+              <th data-i18n="optionsKeywordHeader">Keyword</th>
+              <th data-i18n="optionsCategoryHeader">Category</th>
+              <th data-i18n="optionsTypeHeader">Type</th>
+              <th data-i18n="optionsActionHeader">Action</th>
             </tr>
           </thead>
           <tbody id="keywords-tbody"></tbody>
@@ -123,12 +123,12 @@
 
     <!-- Whitelist -->
     <section class="card">
-      <h2>Whitelist (Từ khóa ngoại lệ)</h2>
-      <p class="card-desc">Các từ khóa này sẽ không bị chặn dù match với blacklist</p>
+      <h2 data-i18n="optionsWhitelistTitle">Whitelist (won't block)</h2>
+      <p class="card-desc" data-i18n="optionsWhitelistDesc">These keywords won't be blocked even if they match blacklist</p>
 
       <div class="add-keyword-form">
-        <input type="text" id="whitelist-input" placeholder="Nhập từ khóa whitelist...">
-        <button id="add-whitelist-btn" class="btn primary">Thêm</button>
+        <input type="text" id="whitelist-input" data-i18n-placeholder="optionsWhitelistPlaceholder" placeholder="Add whitelist keyword...">
+        <button id="add-whitelist-btn" class="btn primary" data-i18n="btnAdd">Add</button>
       </div>
 
       <div class="whitelist-container">
@@ -138,32 +138,32 @@
 
     <!-- Import/Export -->
     <section class="card">
-      <h2>Sao lưu & Khôi phục</h2>
+      <h2 data-i18n="optionsBackupTitle">Backup & Restore</h2>
       <div class="io-buttons">
-        <button id="export-btn" class="btn secondary">Xuất JSON</button>
-        <button id="import-btn" class="btn secondary">Nhập JSON</button>
+        <button id="export-btn" class="btn secondary" data-i18n="btnExport">Export JSON</button>
+        <button id="import-btn" class="btn secondary" data-i18n="btnImport">Import JSON</button>
         <input type="file" id="import-file" accept=".json" hidden>
-        <button id="reset-stats-btn" class="btn danger">Đặt lại thống kê</button>
+        <button id="reset-stats-btn" class="btn danger" data-i18n="optionsResetStats">Reset statistics</button>
       </div>
     </section>
 
     <!-- Regex Help -->
     <section class="card">
-      <h2>Hướng dẫn Regex</h2>
+      <h2 data-i18n="optionsRegexHelp">Regex Help</h2>
       <div class="help-content">
-        <p><code>.</code> - Khớp bất kỳ ký tự nào</p>
-        <p><code>*</code> - Khớp 0 hoặc nhiều lần</p>
-        <p><code>+</code> - Khớp 1 hoặc nhiều lần</p>
-        <p><code>?</code> - Khớp 0 hoặc 1 lần</p>
-        <p><code>[abc]</code> - Khớp a, b hoặc c</p>
-        <p><code>(a|b)</code> - Khớp a hoặc b</p>
-        <p><code>^</code> - Bắt đầu chuỗi</p>
-        <p><code>$</code> - Kết thúc chuỗi</p>
+        <p><code>.</code> - <span data-i18n="regexHelpDot">Match any character</span></p>
+        <p><code>*</code> - <span data-i18n="regexHelpStar">Match 0 or more times</span></p>
+        <p><code>+</code> - <span data-i18n="regexHelpPlus">Match 1 or more times</span></p>
+        <p><code>?</code> - <span data-i18n="regexHelpQuestion">Match 0 or 1 time</span></p>
+        <p><code>[abc]</code> - <span data-i18n="regexHelpBracket">Match a, b or c</span></p>
+        <p><code>(a|b)</code> - <span data-i18n="regexHelpPipe">Match a or b</span></p>
+        <p><code>^</code> - <span data-i18n="regexHelpCaret">Start of string</span></p>
+        <p><code>$</code> - <span data-i18n="regexHelpDollar">End of string</span></p>
       </div>
     </section>
 
     <footer>
-      <p>FB Content Blocker v2.0.0</p>
+      <p>FB Content Blocker v2.1.0</p>
     </footer>
   </div>
 
