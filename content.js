@@ -241,6 +241,39 @@ function getCachedText(element) {
   return text;
 }
 
+/**
+ * Find the actual post container by traversing up the DOM
+ * Facebook posts are wrapped in specific containers we need to hide
+ */
+function findPostContainer(element) {
+  let current = element;
+  let maxDepth = 15; // Prevent infinite loop
+
+  while (current && maxDepth > 0) {
+    // Check for Facebook post container attributes
+    if (current.getAttribute) {
+      const pagelet = current.getAttribute('data-pagelet');
+      const role = current.getAttribute('role');
+
+      // Primary: FeedUnit containers (most reliable)
+      if (pagelet && pagelet.startsWith('FeedUnit')) {
+        return current;
+      }
+
+      // Secondary: article role (standard accessibility)
+      if (role === 'article') {
+        return current;
+      }
+    }
+
+    current = current.parentElement;
+    maxDepth--;
+  }
+
+  // Fallback: return original element if no container found
+  return element;
+}
+
 init();
 
 async function init() {
@@ -390,8 +423,16 @@ function filterContent() {
         }
 
         if (matcher.matches(text)) {
-          debugLog('>>> BLOCKING post with text:', text.substring(0, 100) + '...');
-          hidePost(post);
+          // Find the actual post container (parent element)
+          const postContainer = findPostContainer(post);
+
+          // Skip if already blocked
+          if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') {
+            return;
+          }
+
+          debugLog('>>> BLOCKING post container:', postContainer.tagName, postContainer.getAttribute('data-pagelet') || postContainer.getAttribute('role'));
+          hidePost(postContainer);
           blockedPosts++;
         }
       });
