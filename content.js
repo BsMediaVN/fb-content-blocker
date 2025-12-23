@@ -450,11 +450,21 @@ function filterContent() {
           if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
           if (processedContainers.has(postContainer)) return;
 
-          // Check if any of our keywords should block this post
+          // Direct check: if the sponsored indicator text itself matches a keyword, block immediately
+          // This handles cases where sponsored indicator is in separate DOM node from main content
+          if (matcher.matches(text)) {
+            processedContainers.add(postContainer);
+            debugLog('>>> BLOCKING (sponsored indicator matches keyword):', text);
+            hidePost(postContainer);
+            blockedPosts++;
+            return;
+          }
+
+          // Fallback: check if container text matches any keyword
           const containerText = getCachedText(postContainer);
           if (matcher.matches(containerText)) {
             processedContainers.add(postContainer);
-            debugLog('>>> BLOCKING (direct text):', text, '→', postContainer.tagName);
+            debugLog('>>> BLOCKING (container text):', text, '→', postContainer.tagName);
             hidePost(postContainer);
             blockedPosts++;
           }
