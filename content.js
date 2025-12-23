@@ -6,7 +6,7 @@
 // ============================================
 // Debug Mode (set to true for troubleshooting)
 // ============================================
-const DEBUG = false;
+const DEBUG = true;
 
 function debugLog(...args) {
   if (DEBUG) {
@@ -225,7 +225,7 @@ let blockComments = true;
 let showPlaceholder = true; // false = completely remove from DOM
 let observer = null;
 let debounceTimer = null;
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 150; // Reduced for faster response to new posts
 
 // Text content cache for performance (WeakMap doesn't prevent GC of elements)
 const textCache = new WeakMap();
@@ -404,7 +404,9 @@ function filterContent() {
     // Filter posts
     let totalPosts = 0;
     let blockedPosts = 0;
+    const processedContainers = new Set();
 
+    // Method 1: Scan using selectors
     postSelectors.forEach((selector, idx) => {
       const posts = document.querySelectorAll(selector);
       if (posts.length > 0) {
@@ -417,25 +419,46 @@ function filterContent() {
 
         const text = getCachedText(post);
 
-        // Log sample text for debugging
-        if (DEBUG && text.length > 50) {
-          debugLog('Post text sample:', text.substring(0, 150).replace(/\n/g, ' '));
-        }
-
         if (matcher.matches(text)) {
-          // Find the actual post container (parent element)
           const postContainer = findPostContainer(post);
+          if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
+          if (processedContainers.has(postContainer)) return;
 
-          // Skip if already blocked
-          if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') {
-            return;
-          }
-
-          debugLog('>>> BLOCKING post container:', postContainer.tagName, postContainer.getAttribute('data-pagelet') || postContainer.getAttribute('role'));
+          processedContainers.add(postContainer);
+          debugLog('>>> BLOCKING (selector):', postContainer.tagName, postContainer.getAttribute('data-pagelet') || postContainer.getAttribute('role'));
           hidePost(postContainer);
           blockedPosts++;
         }
       });
+    });
+
+    // Method 2: Direct text search for sponsored indicators
+    // This catches posts that selectors might miss
+    const sponsoredTexts = ['Được tài trợ', 'Sponsored', 'Đề xuất cho bạn', 'Suggested for you'];
+    const allTextNodes = document.querySelectorAll('[dir="auto"], span, a');
+
+    allTextNodes.forEach(node => {
+      const text = node.textContent?.trim() || '';
+
+      // Check if this specific element contains sponsored indicator
+      for (const sponsored of sponsoredTexts) {
+        if (text === sponsored || text.startsWith(sponsored + ' ')) {
+          const postContainer = findPostContainer(node);
+
+          if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
+          if (processedContainers.has(postContainer)) return;
+
+          // Check if any of our keywords should block this post
+          const containerText = getCachedText(postContainer);
+          if (matcher.matches(containerText)) {
+            processedContainers.add(postContainer);
+            debugLog('>>> BLOCKING (direct text):', text, '→', postContainer.tagName);
+            hidePost(postContainer);
+            blockedPosts++;
+          }
+          return;
+        }
+      }
     });
 
     debugLog(`=== Scan complete: ${totalPosts} posts, ${blockedPosts} blocked ===`);
