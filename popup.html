@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FB Content Blocker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>FB Content Blocker</h1>
+
+    <div class="input-group">
+      <input type="text" id="keyword-input" placeholder="Nhập từ khóa cần chặn...">
+      <button id="add-btn">Thêm</button>
+    </div>
+
+    <div class="keywords-section">
+      <h2>Từ khóa đang chặn:</h2>
+      <ul id="keywords-list"></ul>
+    </div>
+
+    <div class="toggle-section">
+      <label class="toggle">
+        <input type="checkbox" id="enabled-toggle" checked>
+        <span class="slider"></span>
+      </label>
+      <span>Bật/Tắt extension</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

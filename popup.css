@@ -1,0 +1,169 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+}
+
+.container {
+  padding: 16px;
+}
+
+h1 {
+  font-size: 18px;
+  color: #1877f2;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 14px;
+  color: #65676b;
+  margin-bottom: 8px;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+#keyword-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+#keyword-input:focus {
+  border-color: #1877f2;
+}
+
+#add-btn {
+  padding: 10px 16px;
+  background: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#add-btn:hover {
+  background: #166fe5;
+}
+
+.keywords-section {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#keywords-list {
+  list-style: none;
+}
+
+#keywords-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+#keywords-list li:last-child {
+  border-bottom: none;
+}
+
+#keywords-list li span {
+  font-size: 14px;
+  color: #050505;
+}
+
+.delete-btn {
+  background: #fa3e3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #d93025;
+}
+
+.toggle-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-section span {
+  font-size: 14px;
+  color: #65676b;
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #1877f2;
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.empty-message {
+  color: #65676b;
+  font-size: 13px;
+  text-align: center;
+  padding: 16px 0;
+}
