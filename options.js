@@ -60,6 +60,7 @@ function setupEventListeners() {
   document.getElementById('enabled-toggle').addEventListener('change', saveSettings);
   document.getElementById('block-comments-toggle').addEventListener('change', saveSettings);
   document.getElementById('case-sensitive-toggle').addEventListener('change', saveSettings);
+  document.getElementById('show-placeholder-toggle').addEventListener('change', saveSettings);
 
   // Add keyword
   document.getElementById('add-btn').addEventListener('click', addKeyword);
@@ -147,6 +148,7 @@ async function loadSettings() {
     document.getElementById('enabled-toggle').checked = enabled !== false;
     document.getElementById('block-comments-toggle').checked = settings.blockComments !== false;
     document.getElementById('case-sensitive-toggle').checked = settings.caseSensitive === true;
+    document.getElementById('show-placeholder-toggle').checked = settings.showPlaceholder !== false;
   } catch (error) {
     console.error('[FB Blocker] loadSettings error:', error);
   }
@@ -157,10 +159,11 @@ async function saveSettings() {
     const enabled = document.getElementById('enabled-toggle').checked;
     const blockComments = document.getElementById('block-comments-toggle').checked;
     const caseSensitive = document.getElementById('case-sensitive-toggle').checked;
+    const showPlaceholder = document.getElementById('show-placeholder-toggle').checked;
 
     await chrome.storage.sync.set({
       enabled,
-      settings: { blockComments, caseSensitive }
+      settings: { blockComments, caseSensitive, showPlaceholder }
     });
 
     notifyContentScript();

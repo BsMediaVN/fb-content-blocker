@@ -222,6 +222,7 @@ const Migration = {
 let matcher = new KeywordMatcher([], []);
 let enabled = true;
 let blockComments = true;
+let showPlaceholder = true; // false = completely remove from DOM
 let observer = null;
 let debounceTimer = null;
 const DEBOUNCE_MS = 300;
@@ -288,6 +289,7 @@ async function init() {
       if (changes.settings) {
         const settings = changes.settings.newValue || {};
         blockComments = settings.blockComments !== false;
+        showPlaceholder = settings.showPlaceholder !== false;
         resetHiddenPosts();
         filterContent();
       }
@@ -308,9 +310,11 @@ async function loadSettings() {
 
     enabled = syncData.enabled !== false;
     blockComments = settings.blockComments !== false;
+    showPlaceholder = settings.showPlaceholder !== false; // default true
 
     debugLog('Keywords loaded:', keywords.map(k => typeof k === 'string' ? k : k.text));
     debugLog('Whitelist:', whitelist.map(w => typeof w === 'string' ? w : w.text));
+    debugLog('Settings:', { enabled, blockComments, showPlaceholder });
 
     matcher.update(keywords, whitelist);
   } catch (error) {
@@ -447,12 +451,19 @@ function filterComments() {
 }
 
 async function hideComment(comment) {
+  // Increment stats
+  Stats.increment();
+
+  // If showPlaceholder is false, completely remove from DOM
+  if (!showPlaceholder) {
+    comment.remove();
+    return;
+  }
+
+  // Otherwise, hide with placeholder
   comment.dataset.fbCommentBlocked = 'true';
   comment.dataset.originalDisplay = comment.style.display;
   comment.style.display = 'none';
-
-  // Increment stats
-  Stats.increment();
 
   // Create small inline placeholder for comments (no innerHTML for XSS safety)
   const placeholder = document.createElement('span');
@@ -478,12 +489,19 @@ async function hideComment(comment) {
 }
 
 async function hidePost(post) {
+  // Increment stats
+  Stats.increment();
+
+  // If showPlaceholder is false, completely remove from DOM
+  if (!showPlaceholder) {
+    post.remove();
+    return;
+  }
+
+  // Otherwise, hide with placeholder
   post.dataset.fbBlocked = 'true';
   post.dataset.originalDisplay = post.style.display;
   post.style.display = 'none';
-
-  // Increment stats
-  Stats.increment();
 
   // Create placeholder (no innerHTML for XSS safety)
   const placeholder = document.createElement('div');

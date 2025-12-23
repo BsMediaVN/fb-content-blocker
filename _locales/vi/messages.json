@@ -338,5 +338,13 @@
   "regexHelpDollar": {
     "message": "Kết thúc chuỗi",
     "description": "Regex dollar help"
+  },
+  "optionsShowPlaceholder": {
+    "message": "Hiển thị placeholder",
+    "description": "Show placeholder setting label"
+  },
+  "optionsShowPlaceholderDesc": {
+    "message": "Tắt = xóa hoàn toàn nội dung bị chặn",
+    "description": "Show placeholder setting description"
   }
 }

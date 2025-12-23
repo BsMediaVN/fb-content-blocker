@@ -338,5 +338,13 @@
   "regexHelpDollar": {
     "message": "End of string",
     "description": "Regex dollar help"
+  },
+  "optionsShowPlaceholder": {
+    "message": "Show placeholder",
+    "description": "Show placeholder setting label"
+  },
+  "optionsShowPlaceholderDesc": {
+    "message": "Off = completely remove blocked content",
+    "description": "Show placeholder setting description"
   }
 }
