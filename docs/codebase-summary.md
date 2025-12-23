@@ -135,22 +135,32 @@ normalizeText('Được tài trợ') // → 'duoc tai tro'
 
 ### 4. findPostContainer() (content.js)
 
-**Purpose:** Traverse DOM to find actual post container for hiding
+**Purpose:** Traverse DOM to find actual post container for hiding. Always hides entire post, never just text.
 
 ```javascript
 function findPostContainer(element) {
   let current = element;
-  let maxDepth = 15;
-  while (current && maxDepth > 0) {
-    // Check for Facebook post containers
+  let maxDepth = 25; // Deep traversal for nested content
+  let fallbackContainer = null;
+
+  while (current && current !== document.body && maxDepth > 0) {
     const pagelet = current.getAttribute('data-pagelet');
     const role = current.getAttribute('role');
+
     if (pagelet?.startsWith('FeedUnit')) return current;
     if (role === 'article') return current;
+
+    // Fallback: track large container divs (>200px height, >300px width)
+    if (current.tagName === 'DIV' && !fallbackContainer) {
+      const rect = current.getBoundingClientRect();
+      if (rect.height > 200 && rect.width > 300) {
+        fallbackContainer = current;
+      }
+    }
     current = current.parentElement;
     maxDepth--;
   }
-  return element;
+  return fallbackContainer || element;
 }
 ```
 

@@ -272,26 +272,31 @@ function getCachedText(element) {
 
 /**
  * Find the actual post container by traversing up the DOM
- * Facebook posts are wrapped in specific containers we need to hide
+ * Only returns FeedUnit or article containers - safe approach
  */
 function findPostContainer(element) {
   let current = element;
-  let maxDepth = 15; // Prevent infinite loop
+  let maxDepth = 50;
 
-  while (current && maxDepth > 0) {
-    // Check for Facebook post container attributes
+  while (current && current !== document.body && maxDepth > 0) {
     if (current.getAttribute) {
       const pagelet = current.getAttribute('data-pagelet');
       const role = current.getAttribute('role');
 
-      // Primary: FeedUnit containers (most reliable)
+      // Primary: FeedUnit containers (most reliable for posts)
       if (pagelet && pagelet.startsWith('FeedUnit')) {
         return current;
       }
 
-      // Secondary: article role (standard accessibility)
+      // Secondary: article role (standard accessibility marker)
       if (role === 'article') {
         return current;
+      }
+
+      // Stop conditions - these are page-level containers
+      if (pagelet === 'Feed' || role === 'feed' || role === 'main' ||
+          role === 'navigation' || role === 'banner' || role === 'contentinfo') {
+        break;
       }
     }
 
@@ -299,7 +304,8 @@ function findPostContainer(element) {
     maxDepth--;
   }
 
-  // Fallback: return original element if no container found
+  // No safe container found - return original element
+  // Better to hide small text than entire page
   return element;
 }
 
