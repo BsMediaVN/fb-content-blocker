@@ -4,9 +4,43 @@
  */
 
 // ============================================
+// LOAD CHECK - This should appear in console immediately
+// ============================================
+console.log('🚀 [FB Blocker] Content script LOADED at', new Date().toLocaleTimeString());
+
+// ============================================
 // Debug Mode (set to true for troubleshooting)
 // ============================================
 const DEBUG = true;
+
+// ============================================
+// BUILT-IN SPONSORED/ADS DETECTION
+// These are ALWAYS blocked regardless of user keywords
+// ============================================
+const BUILT_IN_ADS_PATTERNS = [
+  // Vietnamese
+  'Được tài trợ',
+  'Đề xuất cho bạn',
+  'Bài viết được tài trợ',
+  'Nội dung được tài trợ',
+  // English
+  'Sponsored',
+  'Suggested for you',
+  'Paid partnership',
+  // Common variations (no diacritics)
+  'Duoc tai tro',
+  'De xuat cho ban',
+];
+
+// Normalize text: remove diacritics for fuzzy matching
+function normalizeText(text) {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+}
 
 function debugLog(...args) {
   if (DEBUG) {
@@ -274,21 +308,28 @@ function findPostContainer(element) {
   return element;
 }
 
-init();
+console.log('🔧 [FB Blocker] Calling init()...');
+init().catch(err => console.error('❌ [FB Blocker] Init failed:', err));
 
 async function init() {
+  console.log('🔧 [FB Blocker] init() started');
   debugLog('=== FB Content Blocker initializing ===');
 
   // Run migration first
+  console.log('🔧 [FB Blocker] Running migration...');
   await Migration.migrateV1ToV2();
 
+  console.log('🔧 [FB Blocker] Loading settings...');
   await loadSettings();
-  debugLog('Settings loaded:', { enabled, blockComments, keywordCount: matcher.count });
+  console.log('🔧 [FB Blocker] Settings loaded:', { enabled, blockComments, keywordCount: matcher.count });
 
+  console.log('🔧 [FB Blocker] Setting up observer...');
   setupObserver();
+
+  console.log('🔧 [FB Blocker] Running initial filter...');
   filterContent();
 
-  debugLog('=== Initialization complete ===');
+  console.log('✅ [FB Blocker] Initialization complete!');
 
   // Listen for updates from popup
   chrome.runtime.onMessage.addListener((message) => {
@@ -432,44 +473,47 @@ function filterContent() {
       });
     });
 
-    // Method 2: Direct text search for sponsored indicators
-    // This catches posts that selectors might miss
-    const sponsoredTexts = ['Được tài trợ', 'Sponsored', 'Đề xuất cho bạn', 'Suggested for you'];
+    // Method 2: BUILT-IN ADS BLOCKING (always active)
+    // Automatically blocks sponsored/suggested content without needing user keywords
     const allTextNodes = document.querySelectorAll('[dir="auto"], span, a');
 
     allTextNodes.forEach(node => {
       const text = node.textContent?.trim() || '';
       if (!text || text.length > 100) return; // Skip empty or too long
 
-      // Check if this specific element contains sponsored indicator
-      for (const sponsored of sponsoredTexts) {
-        // Use includes() for more flexible matching (handles "Được tài trợ · 🌐")
-        if (text.includes(sponsored)) {
+      // Normalize for fuzzy matching (removes diacritics)
+      const normalizedText = normalizeText(text);
+
+      // Check against built-in ads patterns
+      for (const pattern of BUILT_IN_ADS_PATTERNS) {
+        const normalizedPattern = normalizeText(pattern);
+
+        // Match if text contains pattern (case-insensitive, diacritic-insensitive)
+        if (normalizedText.includes(normalizedPattern) || text.includes(pattern)) {
           const postContainer = findPostContainer(node);
 
           if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
           if (processedContainers.has(postContainer)) return;
 
-          // Direct check: if the sponsored indicator text itself matches a keyword, block immediately
-          // This handles cases where sponsored indicator is in separate DOM node from main content
-          if (matcher.matches(text)) {
-            processedContainers.add(postContainer);
-            debugLog('>>> BLOCKING (sponsored indicator matches keyword):', text);
-            hidePost(postContainer);
-            blockedPosts++;
-            return;
-          }
-
-          // Fallback: check if container text matches any keyword
-          const containerText = getCachedText(postContainer);
-          if (matcher.matches(containerText)) {
-            processedContainers.add(postContainer);
-            debugLog('>>> BLOCKING (container text):', text, '→', postContainer.tagName);
-            hidePost(postContainer);
-            blockedPosts++;
-          }
+          // BLOCK IMMEDIATELY - no need to check user keywords for built-in patterns
+          processedContainers.add(postContainer);
+          debugLog('>>> BLOCKING (built-in ads):', text);
+          hidePost(postContainer);
+          blockedPosts++;
           return;
         }
+      }
+
+      // Also check user keywords (with fuzzy matching)
+      if (matcher.count > 0 && matcher.matches(text)) {
+        const postContainer = findPostContainer(node);
+        if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
+        if (processedContainers.has(postContainer)) return;
+
+        processedContainers.add(postContainer);
+        debugLog('>>> BLOCKING (user keyword):', text);
+        hidePost(postContainer);
+        blockedPosts++;
       }
     });
 
