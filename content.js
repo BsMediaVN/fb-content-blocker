@@ -476,6 +476,19 @@ function filterContent() {
     // Method 2: BUILT-IN ADS BLOCKING (always active)
     // Automatically blocks sponsored/suggested content without needing user keywords
     const allTextNodes = document.querySelectorAll('[dir="auto"], span, a');
+    debugLog('Method 2: Scanning', allTextNodes.length, 'text nodes');
+
+    // Debug: Find potential sponsored text
+    let sponsoredFound = [];
+    allTextNodes.forEach(node => {
+      const text = node.textContent?.trim() || '';
+      if (text && text.length < 50 && (text.includes('tài trợ') || text.includes('Sponsored') || text.includes('trợ'))) {
+        sponsoredFound.push(text);
+      }
+    });
+    if (sponsoredFound.length > 0) {
+      debugLog('🔍 Potential sponsored texts found:', sponsoredFound);
+    }
 
     allTextNodes.forEach(node => {
       const text = node.textContent?.trim() || '';
@@ -490,6 +503,7 @@ function filterContent() {
 
         // Match if text contains pattern (case-insensitive, diacritic-insensitive)
         if (normalizedText.includes(normalizedPattern) || text.includes(pattern)) {
+          debugLog('🎯 Pattern match:', { text, pattern, normalizedText, normalizedPattern });
           const postContainer = findPostContainer(node);
 
           if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
