@@ -439,10 +439,12 @@ function filterContent() {
 
     allTextNodes.forEach(node => {
       const text = node.textContent?.trim() || '';
+      if (!text || text.length > 100) return; // Skip empty or too long
 
       // Check if this specific element contains sponsored indicator
       for (const sponsored of sponsoredTexts) {
-        if (text === sponsored || text.startsWith(sponsored + ' ')) {
+        // Use includes() for more flexible matching (handles "Được tài trợ · 🌐")
+        if (text.includes(sponsored)) {
           const postContainer = findPostContainer(node);
 
           if (postContainer.dataset.fbBlocked === 'true' || postContainer.dataset.fbBlocked === 'shown') return;
